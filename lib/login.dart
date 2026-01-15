@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const InstaDAM());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class InstaDAM extends StatelessWidget {
+  const InstaDAM({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,18 +31,16 @@ class LoginState extends State<login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Image.asset(
-          'assets/logoApp.png',
-          height: 40,
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+          Image.asset(
+            'assets/logoApp.png',
+            height: 300,
+            width: 300,
+          ),
             TextField(
               controller: userController,
               decoration: const InputDecoration(
