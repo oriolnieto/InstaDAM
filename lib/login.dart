@@ -42,20 +42,20 @@ class LoginState extends State<login> {
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
 
-  // Función para el estilo de los botones
+  // Función para el estilo de botones (cambia al hacer click)
   ButtonStyle customButtonStyle() {
     return ButtonStyle(
       backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.hovered)) {
-          return const Color(0xFF4CB7CD); // Hover fondo
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0xFF4CB7CD); // Fondo al presionar
         }
-        return const Color(0xFF1F140F); // Normal fondo
+        return const Color(0xFF1F140F); // Fondo normal
       }),
       foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.hovered)) {
-          return const Color(0xFF1F140F); // Hover letra
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0xFF1F140F); // Texto al presionar
         }
-        return const Color(0xFFFFFFFF); // Normal letra
+        return const Color(0xFFFFFFFF); // Texto normal
       }),
     );
   }
