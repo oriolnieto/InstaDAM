@@ -34,7 +34,7 @@ class LoginState extends State<login> {
       appBar: AppBar(
         centerTitle: true,
         title: Image.asset(
-          'assets\logoApp.png',
+          'assets/logoApp.png',
           height: 40,
         ),
       ),
