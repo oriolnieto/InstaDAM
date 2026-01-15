@@ -35,18 +35,17 @@ class RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Image.asset(
-          'assets/logoApp.png',
-          height: 40,
-        ),
-      ),
+
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              'assets/logoApp.png',
+              height: 300,
+              width: 300,
+            ),
             TextField(
               controller: userController,
               decoration: const InputDecoration(
@@ -80,18 +79,7 @@ class RegisterState extends State<Register> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 8),
-            CheckboxListTile(
-              title: const Text('Acepto los términos y condiciones'),
-              value: acceptTerms,
-              onChanged: (value) {
-                setState(() {
-                  acceptTerms = value ?? false;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             ElevatedButton(
               onPressed: () {
                 debugPrint('Usuario: ${userController.text}');
@@ -99,10 +87,12 @@ class RegisterState extends State<Register> {
                 debugPrint('Contraseña: ${passwordController.text}');
                 debugPrint(
                     'Confirmar: ${confirmPasswordController.text}');
-                debugPrint('Acepta términos: $acceptTerms');
               },
               child: const Text('Registrarse'),
             ),
+
+            const SizedBox(height: 10),
+
             ElevatedButton(
               onPressed: () {
                 Navigator.pushReplacement(

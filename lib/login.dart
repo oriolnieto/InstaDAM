@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register.dart';
 
 void main() {
   runApp(const InstaDAM());
@@ -77,6 +78,20 @@ class LoginState extends State<login> {
               },
               child: const Text('Ingresar'),
             ),
+
+            const SizedBox(height: 10),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Register(),
+                  ),
+                );
+              },
+              child: const Text('Ir a Registro'),
+            )
           ],
         ),
       ),
