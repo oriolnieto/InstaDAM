@@ -1,16 +1,17 @@
-# instadam
+# InstaDAM - Grupo 5
 
-InstaDAM Grup 5
+## Descripción del proyecto
 
-## Getting Started
+Texto a poner
 
-This project is a starting point for a Flutter application.
+## Instalación
 
-A few resources to get you started if this is your first Flutter project:
+Texto a poner
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Estructura del proyecto
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Texto a poner
+
+## Funcionalidades implementadas
+
+Texto a poner
