@@ -35,7 +35,7 @@ class RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -70,7 +70,7 @@ class RegisterState extends State<Register> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             TextField(
               controller: confirmPasswordController,
               obscureText: true,
@@ -79,20 +79,36 @@ class RegisterState extends State<Register> {
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 50),
+
+            // Botón Registrarse
             ElevatedButton(
               onPressed: () {
                 debugPrint('Usuario: ${userController.text}');
                 debugPrint('Correo: ${emailController.text}');
                 debugPrint('Contraseña: ${passwordController.text}');
-                debugPrint(
-                    'Confirmar: ${confirmPasswordController.text}');
+                debugPrint('Confirmar: ${confirmPasswordController.text}');
               },
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return const Color(0xFF4CB7CD);
+                  }
+                  return const Color(0xFF1F140F);
+                }),
+                foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return const Color(0xFF1F140F);
+                  }
+                  return const Color(0xFFFFFFFF);
+                }),
+              ),
               child: const Text('Registrarse'),
             ),
 
             const SizedBox(height: 10),
 
+            // Botón Ir a Login
             ElevatedButton(
               onPressed: () {
                 Navigator.pushReplacement(
@@ -102,8 +118,22 @@ class RegisterState extends State<Register> {
                   ),
                 );
               },
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return const Color(0xFF4CB7CD);
+                  }
+                  return const Color(0xFF1F140F);
+                }),
+                foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.hovered)) {
+                    return const Color(0xFF1F140F);
+                  }
+                  return const Color(0xFFFFFFFF);
+                }),
+              ),
               child: const Text('Ir a Login'),
-            )
+            ),
           ],
         ),
       ),
