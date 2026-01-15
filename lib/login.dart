@@ -10,9 +10,22 @@ class InstaDAM extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: login(),
+      theme: ThemeData(
+        inputDecorationTheme: const InputDecorationTheme(
+          labelStyle: TextStyle(color: Colors.black), // Texto normal
+          floatingLabelStyle: TextStyle(color: Color(0xFF4CB7CD)), // Texto al enfocar
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Color(0xFF4CB7CD),
+              width: 2.0,
+            ),
+          ),
+          border: OutlineInputBorder(),
+        ),
+      ),
+      home: const login(),
     );
   }
 }
@@ -29,6 +42,24 @@ class LoginState extends State<login> {
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
 
+  // Función para el estilo de los botones
+  ButtonStyle customButtonStyle() {
+    return ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return const Color(0xFF4CB7CD); // Hover fondo
+        }
+        return const Color(0xFF1F140F); // Normal fondo
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return const Color(0xFF1F140F); // Hover letra
+        }
+        return const Color(0xFFFFFFFF); // Normal letra
+      }),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,23 +74,27 @@ class LoginState extends State<login> {
               height: 300,
               width: 300,
             ),
+
+            // Usuario
             TextField(
               controller: userController,
               decoration: const InputDecoration(
                 labelText: 'Usuario',
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
+
+            // Contraseña
             TextField(
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Contraseña',
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 8),
+
+            // Checkbox
             CheckboxListTile(
               title: const Text('Recordar'),
               value: rememberMe,
@@ -70,15 +105,12 @@ class LoginState extends State<login> {
               },
               controlAffinity: ListTileControlAffinity.leading,
               fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                // Si el checkbox está seleccionado (marcado), usar azul
                 if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF4CB7CD);
+                  return const Color(0xFF4CB7CD); // Marcado azul
                 }
-                // Si no está marcado, fondo blanco
-                return const Color(0xFFFFFFFF);
+                return const Color(0xFFFFFFFF); // No marcado blanco
               }),
             ),
-
             const SizedBox(height: 16),
 
             // Botón Ingresar
@@ -86,25 +118,11 @@ class LoginState extends State<login> {
               onPressed: () {
                 debugPrint('Usuario: ${userController.text}');
                 debugPrint('Contraseña: ${passwordController.text}');
-                debugPrint('checkbox: $rememberMe');
+                debugPrint('Recordar: $rememberMe');
               },
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return const Color(0xFF4CB7CD); // Hover fondo
-                  }
-                  return const Color(0xFF1F140F); // Normal fondo
-                }),
-                foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return const Color(0xFF1F140F); // Hover letra
-                  }
-                  return const Color(0xFFFFFFFF); // Normal letra
-                }),
-              ),
+              style: customButtonStyle(),
               child: const Text('Ingresar'),
             ),
-
             const SizedBox(height: 10),
 
             // Botón Ir a Registro
@@ -117,20 +135,7 @@ class LoginState extends State<login> {
                   ),
                 );
               },
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return const Color(0xFF4CB7CD); // Hover fondo
-                  }
-                  return const Color(0xFF1F140F); // Normal fondo
-                }),
-                foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(WidgetState.hovered)) {
-                    return const Color(0xFF1F140F); // Hover letra
-                  }
-                  return const Color(0xFFFFFFFF); // Normal letra
-                }),
-              ),
+              style: customButtonStyle(),
               child: const Text('Ir a Registro'),
             ),
           ],
