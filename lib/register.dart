@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'db.dart';
 
 void main() {
   runApp(const MyApp());
@@ -84,10 +85,7 @@ class RegisterState extends State<Register> {
             // Botón Registrarse
             ElevatedButton(
               onPressed: () {
-                debugPrint('Usuario: ${userController.text}');
-                debugPrint('Correo: ${emailController.text}');
-                debugPrint('Contraseña: ${passwordController.text}');
-                debugPrint('Confirmar: ${confirmPasswordController.text}');
+                db.register(userController.text, passwordController.text);
               },
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {

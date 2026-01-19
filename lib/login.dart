@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'db.dart';
 import 'register.dart';
+import 'feed.dart';
+
 
 void main() {
   runApp(const InstaDAM());
