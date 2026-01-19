@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:async';
+
 
 class db {
   static Database? _database;
@@ -11,6 +13,12 @@ class db {
       onCreate: (db, version) async {
         await db.execute(
           'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, pass TEXT)', // creem taula amb autoincrementacio y usuari i contra
+        );
+        await db.execute(
+          'CREATE TABLE posts(id INTEGER PRIMARY KEY AUTOINCREMENT, rutaImagen TEXT, user TEXT, desc TEXT, fecha TEXT, likes INTEGER, comentarios INTEGER)',
+        );
+        await db.execute(
+          'CREATE TABLE comentarios(id INTEGER PRIMARY KEY AUTOINCREMENT, idPost TEXT, user TEXT, contenido TEXT, fecha TEXT)',
         );
       },
     );
