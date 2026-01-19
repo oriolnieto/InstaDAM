@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'feed.dart';
 
 class profile extends StatefulWidget {
   const profile({super.key});
@@ -9,7 +10,7 @@ class profile extends StatefulWidget {
 }
 
 class _profileState extends State<profile> {
-  String user = 'Usuari';
+  String user = 'Usuario';
   int comptadorPost = 0;
   bool temaOscuro = false;
   bool notificacions = true;
@@ -25,7 +26,7 @@ class _profileState extends State<profile> {
   Future<void> _loadPreferences() async {
     final preferences = await SharedPreferences.getInstance();
     setState(() {
-      user = preferences.getString('Username') ?? 'Usuari';
+      user = preferences.getString('Username') ?? 'Usuario';
       comptadorPost = preferences.getInt('postCount') ?? 0;
       temaOscuro = preferences.getBool('isDarkTheme') ?? false;
       notificacions = preferences.getBool('notifications') ?? true;
@@ -49,7 +50,32 @@ class _profileState extends State<profile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil de Usuario'),
+        title: const Text('Perfil'),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => Feed()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => profile()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -131,9 +157,7 @@ class _profileState extends State<profile> {
                 }
               },
             ),
-
-            const Spacer(),
-
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _logout,
               child: const Text('Cerrar Sesión'),

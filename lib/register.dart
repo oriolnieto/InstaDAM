@@ -27,9 +27,7 @@ class Register extends StatefulWidget {
 
 class RegisterState extends State<Register> {
   final TextEditingController userController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
 
   bool acceptTerms = false;
 
@@ -56,27 +54,10 @@ class RegisterState extends State<Register> {
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Correo electrónico',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Contraseña',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: confirmPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirmar contraseña',
                 border: OutlineInputBorder(),
               ),
             ),
