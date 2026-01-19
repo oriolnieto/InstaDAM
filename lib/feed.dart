@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'profile.dart';
+import 'feed.dart';
+
 
 void main() {
   runApp(const Feed());
@@ -21,11 +24,37 @@ class home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      body: const Center(
         child: Text(
-          'Feed',
-          style: TextStyle(fontSize: 20),
+          'Home',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => Feed()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.person),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => profile()),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
