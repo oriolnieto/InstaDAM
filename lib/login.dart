@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'db.dart';
 import 'register.dart';
 import 'feed.dart';
 
 
-void main() {
-  runApp(const InstaDAM());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  bool logged = prefs.getBool('logged') ?? false;
+  Widget inicio;
+  if (logged) {
+    inicio = const Feed();
+  } else {
+    inicio = const login();
+  }
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: inicio,
+  ));
 }
 
 class InstaDAM extends StatelessWidget {
@@ -13,23 +26,7 @@ class InstaDAM extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        inputDecorationTheme: const InputDecorationTheme(
-          labelStyle: TextStyle(color: Colors.black), // Texto normal
-          floatingLabelStyle: TextStyle(color: Color(0xFF4CB7CD)), // Texto al enfocar
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color(0xFF4CB7CD),
-              width: 2.0,
-            ),
-          ),
-          border: OutlineInputBorder(),
-        ),
-      ),
-      home: const login(),
-    );
+    return Container(); // ha de tornar algo sino no funciona
   }
 }
 
@@ -41,6 +38,21 @@ class login extends StatefulWidget {
 }
 
 class LoginState extends State<login> {
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  void _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      userController.text = prefs.getString('username') ?? '';
+      rememberMe = prefs.getBool('remember') ?? false;
+    });
+  }
+
   final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
@@ -116,18 +128,31 @@ class LoginState extends State<login> {
             ),
             const SizedBox(height: 16),
 
-            // Botón Ingresar
             ElevatedButton(
-              onPressed: () {
-                debugPrint('Usuario: ${userController.text}');
-                debugPrint('Contraseña: ${passwordController.text}');
-                debugPrint('Recordar: $rememberMe');
+              onPressed: () async {
+                final user = userController.text;
+                final pass = passwordController.text;
+
+                final prefs = await SharedPreferences.getInstance();
+
+                await prefs.setBool('logged', true);
+                await prefs.setBool('remember', rememberMe);
+
+                if (rememberMe) {
+                  await prefs.setString('username', user);
+                } else {
+                  await prefs.remove('username');
+                }
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Feed()),
+                );
               },
               style: customButtonStyle(),
               child: const Text('Ingresar'),
             ),
             const SizedBox(height: 10),
-
             // Botón Ir a Registro
             ElevatedButton(
               onPressed: () {
