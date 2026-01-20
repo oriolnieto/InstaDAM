@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'feed.dart';
+import 'createPost.dart';
 
 
 void main() {
@@ -30,6 +31,16 @@ class home extends StatelessWidget {
           'Home',
           style: TextStyle(fontSize: 24),
         ),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => createPost()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
 
       bottomNavigationBar: BottomAppBar(
