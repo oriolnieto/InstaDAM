@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'feed.dart';
 
-
 void main() {
   runApp(const createPost());
 }
@@ -13,21 +12,60 @@ class createPost extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: home(),
+      home: Home(),
     );
   }
 }
 
-class home extends StatelessWidget {
-  const home({super.key});
+final TextEditingController descController = TextEditingController();
+final TextEditingController rutaImagenController = TextEditingController();
+
+class Home extends StatelessWidget {
+  const Home({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Center(
-        child: Text(
-          'createPost',
-          style: TextStyle(fontSize: 24),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => Feed()),
+            );
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Feed()),
+              );
+            },
+          ),
+        ],
+        title: const Text('Crear Post'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            TextField(
+              controller: rutaImagenController,
+              decoration: const InputDecoration(labelText: 'Ruta Imagen'), // de moment deixem aixi falta considerar la decisió de utilizar la dependencia d'image picker
+            ),
+
+            const SizedBox(height: 10),
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(labelText: 'Descripción'),
+              maxLines: 5,
+            ),
+          ],
         ),
       ),
     );

@@ -1,3 +1,6 @@
+import 'dart:ffi';
+
+import 'package:instadam/createPost.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:async';
@@ -34,5 +37,10 @@ class db {
   static Future<void> register(String user, String pass) async { // funcio per a registrar
     final db = await database;
     await db.insert('users', {'user': user, 'pass': pass});
+  }
+
+  static Future<void> createPost(String rutaImagen, String user, String desc, String fecha, int likes, int comentarios) async { // insertar a la db el post
+    final db = await database;
+    await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha, 'likes': likes, 'comentarios': comentarios,});
   }
 }
