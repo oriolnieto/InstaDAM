@@ -1,5 +1,7 @@
 # InstaDAM - Grupo 5
 
+![Logo](assets/logoApp.png)
+
 ## Descripción del proyecto
 
 InstaDAM es una réplica de la conocida aplicación Instagram.
