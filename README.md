@@ -1,6 +1,8 @@
 # InstaDAM - Grupo 5
 
-![Logo](assets/logoApp.png)
+<p align="center">
+  <img src="assets/logoApp.png" alt="Logo" width="200">
+</p>
 
 ## Descripción del proyecto
 
