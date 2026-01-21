@@ -7,7 +7,7 @@
 
 ## Descripción del proyecto
 
-InstaDAM es una réplica de la conocida aplicación Instagram.
+InstaDAM es una app móvil inspirada en Instagram, desarrollada con Flutter y Dart. Permite iniciar sesión, crear publicaciones, dar likes y añadir comentarios. Usa SharedPreferences para guardar datos del usuario y ajustes, y SQFlite para almacenar publicaciones y comentarios. La app incluye un feed, perfil de usuario y una pantalla de configuración, obviamente con las pantallas de registro y login.
 
 ## Instalación
 
