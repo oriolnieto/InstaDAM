@@ -45,7 +45,10 @@ class db {
   static Future<void> createPost(String rutaImagen, String user, String desc, String fecha) async { // insertar a la db el post
     final db = await database;
     await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha,});
+    print('Post creat: user=$user, desc=$desc, fecha=$fecha, rutaImagen=$rutaImagen');
   }
+
+
   static Future<List<Map<String, dynamic>>> getPosts() async {
     final db = await database;
     final result = await db.query('posts', orderBy: 'id DESC',); return result;

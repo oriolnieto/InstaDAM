@@ -17,40 +17,32 @@ class Feed extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: home(),
+      home: HomePage(),
     );
   }
 }
-
-class home extends StatefulWidget {
-  const home({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<home> createState() => _homeState();
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  List<Map<String, dynamic>> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeed();
   }
 
-  class _homeState extends State<home> {
-    List<Map<String, dynamic>> posts = [];
-
-    @override
-    void initState() {
-      super.initState();
-      _loadFeed();
-    }
-
-    Future<void> _loadFeed() async {
-      final data = await db.getPosts();
-      setState(() {
-        posts = data;
+  Future<void> _loadFeed() async {
+    final data = await db.getPosts();
+    setState(() {
+      posts = data;
     });
   }
-
-  @override
-  Widget build (BuildContext context) {
-      return Container();
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +53,6 @@ class home extends StatefulWidget {
           style: TextStyle(fontSize: 24),
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -71,7 +62,6 @@ class home extends StatefulWidget {
         },
         child: const Icon(Icons.add),
       ),
-
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -79,10 +69,7 @@ class home extends StatefulWidget {
             IconButton(
               icon: const Icon(Icons.home),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => Feed()),
-                );
+                _loadFeed(); // refresca el feed
               },
             ),
             IconButton(
@@ -99,3 +86,4 @@ class home extends StatefulWidget {
       ),
     );
   }
+}
