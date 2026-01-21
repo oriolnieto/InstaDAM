@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'feed.dart';
 import 'createPost.dart';
+import 'package:sqflite/sqflite.dart';
+import 'db.dart';
 
 
 void main() {
@@ -20,8 +22,35 @@ class Feed extends StatelessWidget {
   }
 }
 
-class home extends StatelessWidget {
+class home extends StatefulWidget {
   const home({super.key});
+
+  @override
+  State<home> createState() => _homeState();
+
+  }
+
+  class _homeState extends State<home> {
+    List<Map<String, dynamic>> posts = [];
+
+    @override
+    void initState() {
+      super.initState();
+      _loadFeed();
+    }
+
+    Future<void> _loadFeed() async {
+      final data = await db.getPosts();
+      setState(() {
+        posts = data;
+    });
+  }
+
+  @override
+  Widget build (BuildContext context) {
+      return Container();
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -70,4 +99,3 @@ class home extends StatelessWidget {
       ),
     );
   }
-}

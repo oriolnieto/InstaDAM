@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'db.dart';
 import 'feed.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const createPost());
@@ -20,6 +22,8 @@ class createPost extends StatelessWidget {
 final TextEditingController descController = TextEditingController();
 final TextEditingController rutaImagenController = TextEditingController();
 
+const String currentUser = 'UsuariTest';
+
 class Home extends StatelessWidget {
   const Home({super.key});
 
@@ -39,7 +43,9 @@ class Home extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
+              final fecha = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+              await db.createPost(rutaImagenController.text, currentUser, descController.text, fecha);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => Feed()),
