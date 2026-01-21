@@ -2,16 +2,30 @@
 
 ## Descripción del proyecto
 
-Texto a poner
+InstaDAM es una réplica de la conocida aplicación Instagram.
 
 ## Instalación
 
-Texto a poner
+  cupertino_icons: ^1.0.8
+  sqflite: ^2.4.2
+  shared_preferences: ^2.5.4
+  path: ^1.8.3
+
+  - assets/logoApp.png
 
 ## Estructura del proyecto
 
-Texto a poner
+assets -
+         > logoApp.png
+
+lib  - 
+       > createPost.dart
+       > db.dart
+       > feed.dart
+       > login.dart
+       > profile.dart
+       > register.dart
 
 ## Funcionalidades implementadas
 
-Texto a poner
+Se ha implementado una función para subir los datos de registro a la BD, una para el login, otra para crear un post (parecido a un registro, insertar datos pero con distintos formatos).
