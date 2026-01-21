@@ -65,8 +65,8 @@ class RegisterState extends State<Register> {
 
             // Botón Registrarse
             ElevatedButton(
-              onPressed: () {
-                db.register(userController.text, passwordController.text);
+              onPressed: () async {
+                await db.register(userController.text, passwordController.text); // fer await perque la funcio es async
               },
               style: ButtonStyle(
                 backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {

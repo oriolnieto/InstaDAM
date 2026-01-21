@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'login.dart';
 import 'feed.dart';
 
 class profile extends StatefulWidget {
@@ -159,7 +160,12 @@ class _profileState extends State<profile> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _logout,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => login()),
+                );
+              },
               child: const Text('Cerrar Sesión'),
             ),
           ],

@@ -13,6 +13,7 @@ class db {
     if (_database != null) return _database!;
     _database = await openDatabase(
       join(await getDatabasesPath(), 'instadam.db'),
+      version: 1, // ficant version s'arregla
       onCreate: (db, version) async {
         await db.execute(
           'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, pass TEXT)', // creem taula amb autoincrementacio y usuari i contra
@@ -30,7 +31,9 @@ class db {
 
   static Future<bool> login(String user, String pass) async {
     final db = await database;
-    final result = await db.query('users', where: 'user = $user AND pass = $pass');
+    final result = await db.query('users', where: 'user = ? AND pass = ?',
+      whereArgs: [user,pass],
+    );
     return result.isNotEmpty;
   }
 

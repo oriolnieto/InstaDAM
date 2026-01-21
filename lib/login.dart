@@ -133,6 +133,10 @@ class LoginState extends State<login> {
                 final user = userController.text;
                 final pass = passwordController.text;
 
+                final ok = await db.login(user, pass);
+
+                if (!ok) return;  // si no retorna, no fer res
+
                 final prefs = await SharedPreferences.getInstance();
 
                 await prefs.setBool('logged', true);
@@ -146,7 +150,7 @@ class LoginState extends State<login> {
 
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const Feed()),
+                  MaterialPageRoute(builder: (context) => const Feed()),   // sino passa directament al feed
                 );
               },
               style: customButtonStyle(),
