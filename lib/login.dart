@@ -139,12 +139,12 @@ class LoginState extends State<login> {
 
                 final prefs = await SharedPreferences.getInstance();
 
-                await prefs.setBool('logged', true);
-                await prefs.setBool('remember', rememberMe);
 
                 if (rememberMe) {
                   await prefs.setString('username', user);
+                  await prefs.setBool('logged', true);
                 } else {
+                  await prefs.setBool('logged', false);
                   await prefs.remove('username');
                 }
 
