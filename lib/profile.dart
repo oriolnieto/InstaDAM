@@ -20,14 +20,22 @@ class _profileState extends State<profile> {
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadPreferences();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      user = prefs.getString('currentUser') ?? 'Usuari';
+    });
   }
 
   // carregar preferencies
   Future<void> _loadPreferences() async {
     final preferences = await SharedPreferences.getInstance();
     setState(() {
-      user = preferences.getString('Username') ?? 'Usuario';
+
       comptadorPost = preferences.getInt('postCount') ?? 0;
       temaOscuro = preferences.getBool('isDarkTheme') ?? false;
       notificacions = preferences.getBool('notifications') ?? true;
@@ -160,10 +168,12 @@ class _profileState extends State<profile> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                await _logout();
+                Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => login()),
+                    (route) => false,
                 );
               },
               child: const Text('Cerrar Sesión'),
