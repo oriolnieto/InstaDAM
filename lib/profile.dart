@@ -77,10 +77,6 @@ class _profileState extends State<profile> {
             IconButton(
               icon: const Icon(Icons.person),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => profile()),
-                );
               },
             ),
           ],
