@@ -30,6 +30,16 @@ lib  -
        > login.dart
        > profile.dart
        > register.dart
+       > main.dart
+       themes -
+         >temaClaro.dart
+         >temaOscuro.dart
+
+Lo primero que se abre es el main, el cual decide que tema se está usando y se lo otorga a todos las demás páginas. 
+El main te redirige al login, desde donde puedes ir a Register para registrarte, o, iniciar sesión y entrar al feed.
+El feed te mustra todos los cards disponibles de forma aleatoria, desde aquí puedes entrar a cualquier publicación para escribir comentarios.
+Desde el feed se puede abrir el profile, donde puedes cambiar los temas.
+En feed tambien puedes acceder a createPost, donde se pueden crear nuevos post en forma de card que saldrán en el feed.
 
 ## Funcionalidades implementadas
 
