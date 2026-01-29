@@ -63,7 +63,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
             onPressed: () async {
               final user = await _getCurrentUser();
               final fecha =
-              DateFormat('yyyy-MM-dd').format(DateTime.now());
+              DateFormat('dd-MM-yyyy').format(DateTime.now());
 
               await db.createPost(
                 imatgeSeleccionada,
