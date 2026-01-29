@@ -21,12 +21,22 @@ class createPost extends StatelessWidget {
 }
 
 final TextEditingController descController = TextEditingController();
-final TextEditingController rutaImagenController = TextEditingController();
 
+final List<String> imatges = [
+  'assets/DES.jpg',
+  'assets/gordo.jpg',
+  'assets/gos.jpg',
+];
 
-
-class CreatePostPage extends StatelessWidget {
+class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
+
+  @override
+  State<CreatePostPage> createState() => _CreatePostPageState();
+}
+
+class _CreatePostPageState extends State<CreatePostPage> {
+  String imatgeSeleccionada = imatges.first;
 
   Future<String> _getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
@@ -52,14 +62,16 @@ class CreatePostPage extends StatelessWidget {
             icon: const Icon(Icons.check),
             onPressed: () async {
               final user = await _getCurrentUser();
-              print('Usuario logueado: $user');
-              final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
+              final fecha =
+              DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-
-              // insereix a la base de dades
               await db.createPost(
-                  rutaImagenController.text, user, descController.text, fecha);
-              rutaImagenController.clear();
+                imatgeSeleccionada,
+                user,
+                descController.text,
+                fecha,
+              );
+
               descController.clear();
 
               Navigator.pushReplacement(
@@ -74,16 +86,38 @@ class CreatePostPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
-            TextField(
-              controller: rutaImagenController,
-              decoration: const InputDecoration(labelText: 'Ruta Imagen'), // de moment deixem aixi falta considerar la decisió de utilizar la dependencia d'image picker
+            Image.asset(
+              imatgeSeleccionada,
+              height: 200,
+              fit: BoxFit.cover,
             ),
 
             const SizedBox(height: 10),
+
+            DropdownButton<String>(
+              value: imatgeSeleccionada,
+              isExpanded: true,
+              items: imatges.map((img) {
+                return DropdownMenuItem(
+                  value: img,
+                  child: Text(img.split('/').last),
+                );
+              }).toList(),
+              onChanged: (valor) {
+                if (valor != null) {
+                  setState(() {
+                    imatgeSeleccionada = valor;
+                  });
+                }
+              },
+            ),
+
+            const SizedBox(height: 10),
+
             TextField(
               controller: descController,
-              decoration: const InputDecoration(labelText: 'Descripción'),
+              decoration:
+              const InputDecoration(labelText: 'Descripción'),
               maxLines: 5,
             ),
           ],
