@@ -86,6 +86,20 @@ class _HomePageState extends State<HomePage> {
                           fontSize: 12,
                         ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.favorite),
+                        onPressed: () async {
+                          await db.like(post['id']);
+
+                          final updatedPost = (await db.getPosts())
+                              .firstWhere((p) => p['id'] == post['id']);
+
+                          setState(() {
+                            post['likes'] = updatedPost['likes'];
+                          });
+                        },
+                      ),
+                      Text('${post['likes']}'),
                     ],
                   ),
                 ),

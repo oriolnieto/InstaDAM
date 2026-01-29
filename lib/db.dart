@@ -53,4 +53,10 @@ class db {
     final db = await database;
     final result = await db.query('posts', orderBy: 'id DESC',); return result;
   }
+
+  static Future<void> like(int id) async {
+    final db = await database;
+    final result = await db.query('UPDATE posts SET likes = likes + 1 WHERE id = ?', whereArgs: [id],
+    );
+  }
 }
