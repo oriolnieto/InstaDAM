@@ -4,40 +4,19 @@ import 'db.dart';
 import 'register.dart';
 import 'feed.dart';
 
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  bool logged = prefs.getBool('logged') ?? false;
-  Widget inicio;
-  if (logged) {
-    inicio = const Feed();
-  } else {
-    inicio = const login();
-  }
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: inicio,
-  ));
-}
-
-class InstaDAM extends StatelessWidget {
-  const InstaDAM({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(); // ha de tornar algo sino no funciona
-  }
-}
-
 class login extends StatefulWidget {
   const login({super.key});
 
   @override
-  State<login> createState() => LoginState();
+  State<login> createState() => _LoginState();
 }
 
-class LoginState extends State<login> {
+class _LoginState extends State<login> {
+  final TextEditingController userController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool rememberMe = false;
+
   @override
   void initState() {
     super.initState();
@@ -53,127 +32,111 @@ class LoginState extends State<login> {
     });
   }
 
-  final TextEditingController userController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool rememberMe = false;
-
-  // Función para el estilo de botones (cambia al hacer click)
-  ButtonStyle customButtonStyle() {
-    return ButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return const Color(0xFF4CB7CD); // Fondo al presionar
-        }
-        return const Color(0xFF1F140F); // Fondo normal
-      }),
-      foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.pressed)) {
-          return const Color(0xFF1F140F); // Texto al presionar
-        }
-        return const Color(0xFFFFFFFF); // Texto normal
-      }),
-    );
+  @override
+  void dispose() {
+    userController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF), // Fondo blanco
       body: Padding(
         padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/logoApp.png',
-              height: 300,
-              width: 300,
-            ),
-
-            // Usuario
-            TextField(
-              controller: userController,
-              decoration: const InputDecoration(
-                labelText: 'Usuario',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/logoApp.png',
+                height: 300,
+                width: 300,
               ),
-            ),
-            const SizedBox(height: 16),
 
-            // Contraseña
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
+              TextField(
+                controller: userController,
+                decoration: const InputDecoration(
+                  labelText: 'Usuario',
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
 
-            // Checkbox
-            CheckboxListTile(
-              title: const Text('Recordar'),
-              value: rememberMe,
-              onChanged: (value) {
-                setState(() {
-                  rememberMe = value ?? false;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF4CB7CD); // Marcado azul
-                }
-                return const Color(0xFFFFFFFF); // No marcado blanco
-              }),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            ElevatedButton(
-              onPressed: () async {
-                final user = userController.text;
-                final pass = passwordController.text;
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Contraseña',
+                ),
+              ),
 
-                final ok = await db.login(user, pass);
+              const SizedBox(height: 8),
 
-                if (!ok) return;  // si no retorna, no fer res
+              CheckboxListTile(
+                title: const Text('Recordar'),
+                value: rememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    rememberMe = value ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
 
-                final prefs = await SharedPreferences.getInstance();
+              const SizedBox(height: 16),
 
-                await prefs.setString('currentUser', user);
-                await prefs.setBool('logged', true);
+              ElevatedButton(
+                onPressed: () async {
+                  final user = userController.text;
+                  final pass = passwordController.text;
 
+                  final ok = await db.login(user, pass);
+                  if (!ok) return;
 
-                if (rememberMe) {
-                  await prefs.setString('username', user);
-                  await prefs.setBool('logged', true);
-                } else {
-                  await prefs.setBool('logged', false);
-                  await prefs.remove('username');
-                }
+                  final prefs = await SharedPreferences.getInstance();
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Feed()),   // sino passa directament al feed
-                );
-              },
-              style: customButtonStyle(),
-              child: const Text('Ingresar'),
-            ),
-            const SizedBox(height: 10),
-            // Botón Ir a Registro
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const Register(),
-                  ),
-                );
-              },
-              style: customButtonStyle(),
-              child: const Text('Ir a Registro'),
-            ),
-          ],
+                  await prefs.setString('currentUser', user);
+
+                  if (rememberMe) {
+                    await prefs.setString('username', user);
+                    await prefs.setBool('logged', true);
+                    await prefs.setBool('remember', true);
+                  } else {
+                    await prefs.remove('username');
+                    await prefs.setBool('logged', false);
+                    await prefs.setBool('remember', false);
+                  }
+
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const Feed(),
+                    ),
+                  );
+                },
+                style: theme.elevatedButtonTheme.style,
+                child: const Text('Ingresar'),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const Register(),
+                    ),
+                  );
+                },
+                style: theme.elevatedButtonTheme.style,
+                child: const Text('Ir a Registro'),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'feed.dart';
+import 'main.dart';
 
 class profile extends StatefulWidget {
   const profile({super.key});
@@ -22,6 +23,14 @@ class _profileState extends State<profile> {
     super.initState();
     _loadUser();
     _loadPreferences();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = MyApp.maybeOf(context);
+      if (appState != null) {
+        setState(() {
+          temaOscuro = appState.isDarkTheme;
+        });
+      }
+    });
   }
 
   Future<void> _loadUser() async {
@@ -113,7 +122,7 @@ class _profileState extends State<profile> {
               },
               child: Text(
                 'Posts: $comptadorPost',
-                style: const TextStyle(fontSize: 18, color: Colors.blue),
+                style: const TextStyle(fontSize: 18),
               ),
             ),
 
@@ -127,6 +136,7 @@ class _profileState extends State<profile> {
                   temaOscuro = valor;
                 });
                 _savePreferences();
+                MyApp.maybeOf(context)?.changeTheme(valor);
               },
             ),
 
