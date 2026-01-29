@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'db.dart';
 import 'feed.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const createPost());
@@ -12,7 +15,7 @@ class createPost extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Home(),
+      home: CreatePostPage(),
     );
   }
 }
@@ -20,13 +23,21 @@ class createPost extends StatelessWidget {
 final TextEditingController descController = TextEditingController();
 final TextEditingController rutaImagenController = TextEditingController();
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+
+
+class CreatePostPage extends StatelessWidget {
+  const CreatePostPage({super.key});
+
+  Future<String> _getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('currentUser') ?? 'Usuari';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Crear Post'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -38,22 +49,32 @@ class Home extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
+            icon: const Icon(Icons.check),
+            onPressed: () async {
+              final user = await _getCurrentUser();
+              print('Usuario logueado: $user');
+              final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+
+              // insereix a la base de dades
+              await db.createPost(
+                  rutaImagenController.text, user, descController.text, fecha);
+              rutaImagenController.clear();
+              descController.clear();
+
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => Feed()),
               );
             },
           ),
         ],
-        title: const Text('Crear Post'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const SizedBox(height: 10),
+
             TextField(
               controller: rutaImagenController,
               decoration: const InputDecoration(labelText: 'Ruta Imagen'), // de moment deixem aixi falta considerar la decisió de utilizar la dependencia d'image picker

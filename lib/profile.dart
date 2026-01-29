@@ -1,80 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'feed.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class Profile extends StatefulWidget {
-  final VoidCallback toggleTheme; // Función para cambiar el tema
-  final bool isDarkTheme;         // Estado actual del tema
-
-  const Profile({super.key, required this.toggleTheme, required this.isDarkTheme});
+class profile extends StatefulWidget {
+  const profile({super.key});
 
   @override
-  State<Profile> createState() => _ProfileState();
+  State<profile> createState() => _profileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _profileState extends State<profile> {
   String user = 'Usuario';
-  int postCount = 0;
-  bool notifications = true;
-  String language = 'Español';
+  int comptadorPost = 0;
+  bool temaOscuro = false;
+  bool notificacions = true;
+  String idioma = 'Español';
 
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadPreferences();
   }
 
-  Future<void> _loadPreferences() async {
+  Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      user = prefs.getString('Username') ?? 'Usuario';
-      postCount = prefs.getInt('postCount') ?? 0;
-      notifications = prefs.getBool('notifications') ?? true;
-      language = prefs.getString('language') ?? 'Español';
+      user = prefs.getString('currentUser') ?? 'Usuari';
+    });
+  }
+
+  // carregar preferencies
+  Future<void> _loadPreferences() async {
+    final preferences = await SharedPreferences.getInstance();
+    setState(() {
+
+      comptadorPost = preferences.getInt('postCount') ?? 0;
+      temaOscuro = preferences.getBool('isDarkTheme') ?? false;
+      notificacions = preferences.getBool('notifications') ?? true;
+      idioma = preferences.getString('language') ?? 'Español';
     });
   }
 
   Future<void> _savePreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkTheme', widget.isDarkTheme);
-    await prefs.setBool('notifications', notifications);
-    await prefs.setString('language', language);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('isDarkTheme', temaOscuro);
+    await preferences.setBool('notifications', notificacions);
+    await preferences.setString('language', idioma);
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil')),
+      appBar: AppBar(
+        title: const Text('Perfil'),
+      ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
               icon: const Icon(Icons.home),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const Feed()),
-              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => Feed()),
+                );
+              },
             ),
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => Profile(
-                    toggleTheme: widget.toggleTheme,
-                    isDarkTheme: widget.isDarkTheme,
-                  ),
-                ),
-              ),
+              onPressed: () {
+              },
             ),
           ],
         ),
@@ -87,65 +90,86 @@ class _ProfileState extends State<Profile> {
               radius: 50,
               backgroundImage: AssetImage('assets/imatge.png'),
             ),
+
             const SizedBox(height: 18),
+
             Text(
               user,
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+
             const SizedBox(height: 10),
+
             GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Posts: $postCount')),
-              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Posts: $comptadorPost'),
+                  ),
+                );
+              },
               child: Text(
-                'Posts: $postCount',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+                'Posts: $comptadorPost',
+                style: const TextStyle(fontSize: 18, color: Colors.blue),
               ),
             ),
+
             const Divider(height: 32),
 
-            // Switch que cambia el tema
             SwitchListTile(
               title: const Text('Tema Oscuro'),
-              value: widget.isDarkTheme,
+              value: temaOscuro,
               onChanged: (valor) {
-                widget.toggleTheme(); // Cambia el tema global
+                setState(() {
+                  temaOscuro = valor;
+                });
                 _savePreferences();
               },
             ),
 
             SwitchListTile(
               title: const Text('Notificaciones'),
-              value: notifications,
-              onChanged: (valor) {
-                setState(() => notifications = valor);
+              value: notificacions,
+              onChanged: (valorN) {
+                setState(() {
+                  notificacions = valorN;
+                });
                 _savePreferences();
               },
             ),
 
             DropdownButton<String>(
-              value: language,
-              dropdownColor: theme.scaffoldBackgroundColor,
-              style: theme.textTheme.bodyMedium,
+              value: idioma,
               items: const [
-                DropdownMenuItem(value: 'Español', child: Text('Español')),
-                DropdownMenuItem(value: 'English', child: Text('English')),
+                DropdownMenuItem(
+                  value: 'Español',
+                  child: Text('Español'),
+                ),
+                DropdownMenuItem(
+                  value: 'English',
+                  child: Text('English'),
+                ),
               ],
-              onChanged: (valor) {
-                if (valor != null) {
-                  setState(() => language = valor);
+              onChanged: (valorI) {
+                if (valorI != null) {
+                  setState(() {
+                    idioma = valorI;
+                  });
                   _savePreferences();
                 }
               },
             ),
             const SizedBox(height: 20),
-
             ElevatedButton(
-              onPressed: () {
-                _logout();
-                Navigator.pushReplacement(
+              onPressed: () async {
+                await _logout();
+                Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const login()),
+                  MaterialPageRoute(builder: (_) => login()),
+                    (route) => false,
                 );
               },
               child: const Text('Cerrar Sesión'),
