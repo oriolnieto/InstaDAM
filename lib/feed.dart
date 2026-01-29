@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'profile.dart';
-import 'feed.dart';
 import 'createPost.dart';
-import 'package:sqflite/sqflite.dart';
 import 'db.dart';
-
 
 void main() {
   runApp(const Feed());
@@ -21,6 +18,7 @@ class Feed extends StatelessWidget {
     );
   }
 }
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -47,11 +45,78 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Center(
+      body: posts.isEmpty
+          ? const Center(
         child: Text(
-          'Home',
+          'No hi ha posts recents',
           style: TextStyle(fontSize: 24),
         ),
+      )
+          : ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+
+          return Card(
+            margin:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Usuari + data
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        post['user'] ?? 'Usuari',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        post['fecha'] ?? '',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Imatge
+                if (post['rutaImagen'] != null &&
+                    post['rutaImagen'].toString().isNotEmpty)
+                  Image.asset(
+                    post['rutaImagen'],
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Text(
+                        'Imatge no trobada',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+
+                // Descripció
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    post['desc'] ?? '',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -68,9 +133,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             IconButton(
               icon: const Icon(Icons.home),
-              onPressed: () {
-                _loadFeed(); // refresca el feed
-              },
+              onPressed: _loadFeed,
             ),
             IconButton(
               icon: const Icon(Icons.person),
