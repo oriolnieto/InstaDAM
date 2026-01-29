@@ -1,49 +1,54 @@
 import 'package:flutter/material.dart';
 
-class TemaOscuro {
-  static ThemeData theme = ThemeData(
-    scaffoldBackgroundColor: const Color(0xFF000000),
+final ThemeData temaOscuro = ThemeData(
+  brightness: Brightness.dark,
 
-    // TextField
-    inputDecorationTheme: const InputDecorationTheme(
-      labelStyle: TextStyle(color: Colors.white),
-      floatingLabelStyle: TextStyle(color: Color(0xFF4CB7CD)),
-      focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Color(0xFF4CB7CD),
-          width: 2,
-        ),
-      ),
-      border: OutlineInputBorder(),
-    ),
+  scaffoldBackgroundColor: const Color(0xFF000000),
 
-    // ElevatedButton
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-          if (states.contains(WidgetState.pressed)) {
-            return const Color(0xFF4CB7CD);
-          }
-          return const Color(0xFFFFFFFF);
-        }),
-        foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-          if (states.contains(WidgetState.pressed)) {
-            return const Color(0xFFFFFFFF);
-          }
-          return const Color(0xFF000000);
-        }),
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: const Color(0xFF4CB7CD),
+    brightness: Brightness.dark,
+  ),
+
+  // TextField
+  inputDecorationTheme: const InputDecorationTheme(
+    labelStyle: TextStyle(color: Colors.white),
+    floatingLabelStyle: TextStyle(color: Color(0xFF4CB7CD)),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Color(0xFF4CB7CD),
+        width: 2,
       ),
     ),
+    border: OutlineInputBorder(),
+  ),
 
-    // Checkbox
-    checkboxTheme: CheckboxThemeData(
-      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-        if (states.contains(WidgetState.selected)) {
+  // ElevatedButton
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.pressed)) {
           return const Color(0xFF4CB7CD);
+        }
+        return const Color(0xFFFFFFFF);
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return const Color(0xFFFFFFFF);
         }
         return const Color(0xFF000000);
       }),
-      checkColor: WidgetStateProperty.all(const Color(0xFFFFFFFF)),
     ),
-  );
-}
+  ),
+
+  // Checkbox
+  checkboxTheme: CheckboxThemeData(
+    fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+      if (states.contains(WidgetState.selected)) {
+        return const Color(0xFF4CB7CD);
+      }
+      return const Color(0xFF000000);
+    }),
+    checkColor: WidgetStateProperty.all(const Color(0xFFFFFFFF)),
+  ),
+);
