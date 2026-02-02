@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'feed.dart';
-import 'main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class profile extends StatefulWidget {
   const profile({super.key});
@@ -23,14 +22,6 @@ class _profileState extends State<profile> {
     super.initState();
     _loadUser();
     _loadPreferences();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final appState = MyApp.maybeOf(context);
-      if (appState != null) {
-        setState(() {
-          temaOscuro = appState.isDarkTheme;
-        });
-      }
-    });
   }
 
   Future<void> _loadUser() async {
@@ -40,11 +31,9 @@ class _profileState extends State<profile> {
     });
   }
 
-  // carregar preferencies
   Future<void> _loadPreferences() async {
     final preferences = await SharedPreferences.getInstance();
     setState(() {
-
       comptadorPost = preferences.getInt('postCount') ?? 0;
       temaOscuro = preferences.getBool('isDarkTheme') ?? false;
       notificacions = preferences.getBool('notifications') ?? true;
@@ -66,6 +55,8 @@ class _profileState extends State<profile> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // ← tema global del MaterialApp
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil'),
@@ -79,14 +70,13 @@ class _profileState extends State<profile> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => Feed()),
+                  MaterialPageRoute(builder: (_) => const Feed()),
                 );
               },
             ),
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () {
-              },
+              onPressed: () {},
             ),
           ],
         ),
@@ -99,19 +89,13 @@ class _profileState extends State<profile> {
               radius: 50,
               backgroundImage: AssetImage('assets/imatge.png'),
             ),
-
             const SizedBox(height: 18),
-
             Text(
               user,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -122,21 +106,20 @@ class _profileState extends State<profile> {
               },
               child: Text(
                 'Posts: $comptadorPost',
-                style: const TextStyle(fontSize: 18),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.primary),
               ),
             ),
-
             const Divider(height: 32),
 
+            // Switch de tema oscuro usando SharedPreferences
             SwitchListTile(
               title: const Text('Tema Oscuro'),
               value: temaOscuro,
               onChanged: (valor) {
-                setState(() {
-                  temaOscuro = valor;
-                });
+                setState(() => temaOscuro = valor);
                 _savePreferences();
-                MyApp.maybeOf(context)?.changeTheme(valor);
+                // tema global no cambia automáticamente, pero los estilos sí
               },
             ),
 
@@ -144,30 +127,22 @@ class _profileState extends State<profile> {
               title: const Text('Notificaciones'),
               value: notificacions,
               onChanged: (valorN) {
-                setState(() {
-                  notificacions = valorN;
-                });
+                setState(() => notificacions = valorN);
                 _savePreferences();
               },
             ),
 
             DropdownButton<String>(
               value: idioma,
+              dropdownColor: theme.scaffoldBackgroundColor,
+              style: theme.textTheme.bodyMedium,
               items: const [
-                DropdownMenuItem(
-                  value: 'Español',
-                  child: Text('Español'),
-                ),
-                DropdownMenuItem(
-                  value: 'English',
-                  child: Text('English'),
-                ),
+                DropdownMenuItem(value: 'Español', child: Text('Español')),
+                DropdownMenuItem(value: 'English', child: Text('English')),
               ],
               onChanged: (valorI) {
                 if (valorI != null) {
-                  setState(() {
-                    idioma = valorI;
-                  });
+                  setState(() => idioma = valorI);
                   _savePreferences();
                 }
               },
@@ -178,10 +153,11 @@ class _profileState extends State<profile> {
                 await _logout();
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => login()),
-                    (route) => false,
+                  MaterialPageRoute(builder: (_) => const login()),
+                      (route) => false,
                 );
               },
+              style: theme.elevatedButtonTheme.style,
               child: const Text('Cerrar Sesión'),
             ),
           ],
