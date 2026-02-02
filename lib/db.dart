@@ -44,8 +44,8 @@ class db {
 
   static Future<void> createPost(String rutaImagen, String user, String desc, String fecha) async { // insertar a la db el post
     final db = await database;
-    await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha,});
-    print('Post creat: user=$user, desc=$desc, fecha=$fecha, rutaImagen=$rutaImagen');
+    await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha, 'likes':0, 'comentarios':0});
+    print('Post creat: user=$user, desc=$desc, fecha=$fecha');
   }
 
 
@@ -56,7 +56,8 @@ class db {
 
   static Future<void> like(int id) async {
     final db = await database;
-    final result = await db.query('UPDATE posts SET likes = likes + 1 WHERE id = ?', whereArgs: [id],
+    await db.rawUpdate(
+      'UPDATE posts SET likes = COALESCE(likes, 0) + 1 WHERE id = ?',
     );
   }
 }

@@ -26,6 +26,7 @@ final List<String> imatges = [
   'assets/DES.jpg',
   'assets/gordo.jpg',
   'assets/gos.jpg',
+  'assets/dam2.jpg'
 ];
 
 class CreatePostPage extends StatefulWidget {
