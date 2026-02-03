@@ -70,8 +70,18 @@ class _HomePageState extends State<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.favorite_border),
+                        onPressed: () async {
+                          await db.like(post['id']);
+                          final data = await db.getPosts();
+                          setState(() {
+                            posts = data;
+                          });
+                        },
+                      ),
+                      Text ('${post['likes'] ?? 0}'),
                       Text(
                         post['user'] ?? 'Usuari',
                         style: const TextStyle(
