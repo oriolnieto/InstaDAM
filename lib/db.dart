@@ -91,8 +91,6 @@ class db {
       [idPost],
     );
   }
-
-
     Future<void> like(int id) async {
       final db = await database;
       await db.rawUpdate(
