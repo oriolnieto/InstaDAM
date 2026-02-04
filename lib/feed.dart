@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                       IconButton(
                         icon: const Icon(Icons.favorite),
                         onPressed: () async {
-                          await db.like(post['id']);
+                          await db.like(post['id'], post['user']);
                           final data = await db.getPosts();
                           setState(() {
                             posts = data;

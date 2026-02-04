@@ -24,6 +24,7 @@ class db {
         await db.execute(
           'CREATE TABLE comentarios(id INTEGER PRIMARY KEY AUTOINCREMENT, idPost TEXT, user TEXT, contenido TEXT, fecha TEXT)',
         );
+        await db.execute('CREATE TABLE post_likes( post_id INTEGER, user TEXT, PRIMARY KEY (post_id, user))',);
       },
     );
     return _database!;
@@ -54,9 +55,26 @@ class db {
     final result = await db.query('posts', orderBy: 'id DESC',); return result;
   }
 
-  static Future<void> like(int id) async {
+  static Future<void> like(int postId, String user) async {
     final db = await database;
-    await db.update ('posts', {'likes': 1}, where: 'id = ?', whereArgs: [id],
+
+    final exists = await db.query(
+      'post_likes',
+      where: 'post_id = ? AND user = ?',
+      whereArgs: [postId, user],
+      limit: 1,
+    );
+
+    if (exists.isNotEmpty) {
+      return;
+    }
+    await db.insert(
+      'post_likes',
+      {'post_id': postId, 'user': user},
+    );
+    await db.rawUpdate(
+      'UPDATE posts SET likes = likes + 1 WHERE id = ?',
+      [postId],
     );
   }
 }
