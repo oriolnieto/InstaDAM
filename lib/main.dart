@@ -22,9 +22,12 @@ class MyApp extends StatefulWidget {
   final bool initialLogged;
   final bool initialDarkTheme;
 
-  const MyApp({super.key, required this.initialLogged, required this.initialDarkTheme});
+  const MyApp({
+    super.key,
+    required this.initialLogged,
+    required this.initialDarkTheme,
+  });
 
-  // Esta función permite acceder al estado desde cualquier widget
   static _MyAppState? maybeOf(BuildContext context) {
     return context.findAncestorStateOfType<_MyAppState>();
   }
@@ -42,7 +45,6 @@ class _MyAppState extends State<MyApp> {
     isDarkTheme = widget.initialDarkTheme;
   }
 
-  // Función que cambia el tema global
   void changeTheme(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
