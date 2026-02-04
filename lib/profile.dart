@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 import 'feed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'main.dart';
 
 class profile extends StatefulWidget {
   const profile({super.key});
@@ -16,6 +17,7 @@ class _profileState extends State<profile> {
   bool temaOscuro = false;
   bool notificacions = true;
   String idioma = 'Español';
+
 
   @override
   void initState() {
@@ -55,7 +57,7 @@ class _profileState extends State<profile> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context); // ← tema global del MaterialApp
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -112,16 +114,19 @@ class _profileState extends State<profile> {
             ),
             const Divider(height: 32),
 
-            // Switch de tema oscuro usando SharedPreferences
             SwitchListTile(
               title: const Text('Tema Oscuro'),
               value: temaOscuro,
               onChanged: (valor) {
                 setState(() => temaOscuro = valor);
                 _savePreferences();
-                // tema global no cambia automáticamente, pero los estilos sí
+
+                final appState = MyApp.maybeOf(context);
+                appState?.changeTheme(valor);
+                appState?.changeTheme(valor);
               },
             ),
+
 
             SwitchListTile(
               title: const Text('Notificaciones'),
