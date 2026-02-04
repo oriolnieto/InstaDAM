@@ -56,8 +56,7 @@ class db {
 
   static Future<void> like(int id) async {
     final db = await database;
-    await db.rawUpdate(
-      'UPDATE posts SET likes = COALESCE(likes, 0) + 1 WHERE id = ?',
+    await db.update ('posts', {'likes': 1}, where: 'id = ?', whereArgs: [id],
     );
   }
 }

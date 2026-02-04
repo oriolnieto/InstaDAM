@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
       body: posts.isEmpty
           ? const Center(
         child: Text(
-          'No hi ha posts recents',
+          'Sin posts recientes.',
           style: TextStyle(fontSize: 24),
         ),
       )
@@ -71,8 +71,24 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
+                      Text(
+                        post['user'] ?? 'Usuari',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        post['fecha'] ?? '',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const Spacer(), // tot dreta
                       IconButton(
-                        icon: const Icon(Icons.favorite_border),
+                        icon: const Icon(Icons.favorite),
                         onPressed: () async {
                           await db.like(post['id']);
                           final data = await db.getPosts();
@@ -82,34 +98,6 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       Text ('${post['likes'] ?? 0}'),
-                      Text(
-                        post['user'] ?? 'Usuari',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        post['fecha'] ?? '',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.favorite),
-                        onPressed: () async {
-                          await db.like(post['id']);
-
-                          final updatedPost = (await db.getPosts())
-                              .firstWhere((p) => p['id'] == post['id']);
-
-                          setState(() {
-                            post['likes'] = updatedPost['likes'];
-                          });
-                        },
-                      ),
-                      Text('${post['likes']}'),
                     ],
                   ),
                 ),
