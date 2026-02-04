@@ -46,10 +46,57 @@ class _CommentsPageState extends State <CommentsPage> {
     await _loadComentarios(); // refresh
   }
 
+  @override
+  Widget build (BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Comentaris"),
+      ),
+      body: Column(
+        children: [
+          Expanded(child: comentarios.isEmpty ? const Center(child: Text("Encara no hi ha comentaris")) : ListView.builder(
+            itemCount: comentarios.length,
+            itemBuilder: (context, index) {
+              final c = comentarios[index];
 
+              return ListTile(
+                title: Text(
+                  c['user'] ?? 'Usuari',
+                  style:  const TextStyle(fontWeight: FontWeight.bold),
+                ),
 
+                subtitle: Text(c['contenido'] ?? ''),
+                trailing: Text(
+                  c['fecha'] ?? '',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              );
+            },
+          ),
+          ),
 
+          // input per comentar
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(child: TextField(
+                  controller: commentController,
+                  decoration: const InputDecoration(
+                    hintText: "Escriu un comentari! :D",
+                    border: OutlineInputBorder();
+                  ),
+                ),
+                ),
 
-
-
+                const SizedBox(width: 8),
+                IconButton(icon: const Icon(Icons.send), onPressed: addComentario,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }
