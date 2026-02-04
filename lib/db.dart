@@ -16,7 +16,7 @@ class db {
       version: 1, // ficant version s'arregla
       onCreate: (db, version) async {
         await db.execute(
-          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, pass TEXT)', // creem taula amb autoincrementacio y usuari i contra
+          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, pass TEXT, posts INTEGER)', // creem taula amb autoincrementacio y usuari i contra
         );
         await db.execute(
           'CREATE TABLE posts(id INTEGER PRIMARY KEY AUTOINCREMENT, rutaImagen TEXT, user TEXT, desc TEXT, fecha TEXT, likes INTEGER, comentarios INTEGER)',
