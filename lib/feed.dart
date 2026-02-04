@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'createPost.dart';
 import 'db.dart';
+import 'comentaris.dart';
 
 void main() {
   runApp(const Feed());
@@ -87,6 +88,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       const Spacer(), // tot dreta
+
+
+
+                      // LIKES //
                       IconButton(
                         icon: const Icon(Icons.favorite),
                         onPressed: () async {
@@ -98,9 +103,27 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       Text ('${post['likes'] ?? 0}'),
+
+                      const SizedBox(width: 10),
+
+                      // COMENTARIS //
+                      IconButton(
+                          icon: const Icon (Icons.comment),
+                          onPressed: () async {
+                            await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) =>
+                                    CommentsPage(idPost: post['id']),
+                                ),
+                                );
+                                await _loadFeed();
+                          },
+                      ),
+                      Text('${post['comentarios'] ?? 0}'),
                     ],
                   ),
                 ),
+
 
                 // Imatge
                 if (post['rutaImagen'] != null &&

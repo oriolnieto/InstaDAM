@@ -28,7 +28,7 @@ class _CommentsPageState extends State <CommentsPage> {
     });
   }
 
-  Future<void> _getCurrentUser() async {
+  Future<String> _getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('currentUser') ?? 'Usuari';
   }
@@ -84,7 +84,7 @@ class _CommentsPageState extends State <CommentsPage> {
                   controller: commentController,
                   decoration: const InputDecoration(
                     hintText: "Escriu un comentari! :D",
-                    border: OutlineInputBorder();
+                    border: OutlineInputBorder(),
                   ),
                 ),
                 ),
