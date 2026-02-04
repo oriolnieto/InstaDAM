@@ -3,6 +3,7 @@ import 'login.dart';
 import 'feed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
+import 'db.dart';
 
 class profile extends StatefulWidget {
   const profile({super.key});
@@ -18,7 +19,6 @@ class _profileState extends State<profile> {
   bool notificacions = true;
   String idioma = 'Español';
 
-
   @override
   void initState() {
     super.initState();
@@ -31,12 +31,28 @@ class _profileState extends State<profile> {
     setState(() {
       user = prefs.getString('currentUser') ?? 'Usuari';
     });
+    await _loadUserPosts();
+  }
+
+  Future<void> _loadUserPosts() async {
+    final database = await db.database;
+    final usuarios = await database.query(
+      'users',
+      where: 'user = ?',
+      whereArgs: [user],
+      limit: 1,
+    );
+
+    if (usuarios.isNotEmpty) {
+      setState(() {
+        comptadorPost = (usuarios.first['posts'] as int?) ?? 0;
+      });
+    }
   }
 
   Future<void> _loadPreferences() async {
     final preferences = await SharedPreferences.getInstance();
     setState(() {
-      comptadorPost = preferences.getInt('postCount') ?? 0;
       temaOscuro = preferences.getBool('isDarkTheme') ?? false;
       notificacions = preferences.getBool('notifications') ?? true;
       idioma = preferences.getString('language') ?? 'Español';
@@ -113,21 +129,16 @@ class _profileState extends State<profile> {
               ),
             ),
             const Divider(height: 32),
-
             SwitchListTile(
               title: const Text('Tema Oscuro'),
               value: temaOscuro,
               onChanged: (valor) {
                 setState(() => temaOscuro = valor);
                 _savePreferences();
-
                 final appState = MyApp.maybeOf(context);
-                appState?.changeTheme(valor);
                 appState?.changeTheme(valor);
               },
             ),
-
-
             SwitchListTile(
               title: const Text('Notificaciones'),
               value: notificacions,
@@ -136,7 +147,6 @@ class _profileState extends State<profile> {
                 _savePreferences();
               },
             ),
-
             DropdownButton<String>(
               value: idioma,
               dropdownColor: theme.scaffoldBackgroundColor,
