@@ -32,33 +32,72 @@ class db {
   static Future<bool> login(String user, String pass) async {
     final db = await database;
     final result = await db.query('users', where: 'user = ? AND pass = ?',
-      whereArgs: [user,pass],
+      whereArgs: [user, pass],
     );
     return result.isNotEmpty;
   }
 
-  static Future<void> register(String user, String pass) async { // funcio per a registrar
+  static Future<void> register(String user, String pass) async {
+    // funcio per a registrar
     final db = await database;
     await db.insert('users', {'user': user, 'pass': pass});
   }
 
-  static Future<void> createPost(String rutaImagen, String user, String desc, String fecha) async { // insertar a la db el post
+  static Future<void> createPost(String rutaImagen, String user, String desc,
+      String fecha) async {
+    // insertar a la db el post
     final db = await database;
-    await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha, 'likes':0, 'comentarios':0});
+    await db.insert('posts', {
+      'rutaImagen': rutaImagen,
+      'user': user,
+      'desc': desc,
+      'fecha': fecha,
+      'likes': 0,
+      'comentarios': 0
+    });
     print('Post creat: user=$user, desc=$desc, fecha=$fecha');
   }
 
 
   static Future<List<Map<String, dynamic>>> getPosts() async {
     final db = await database;
-    final result = await db.query('posts', orderBy: 'id DESC',); return result;
+    final result = await db.query('posts', orderBy: 'id DESC',);
+    return result;
   }
 
-  static Future<void> like(int id) async {
+  static Future<List<Map<String,dynamic>>> getComentarios(int idPost) async {
     final db = await database;
-    await db.rawUpdate(
-      'UPDATE posts SET likes = likes + 1 WHERE id = ?',
-      [id],
+
+    return await db.query(
+      'comentarios',
+      where: 'idPost = ?',
+      whereArgs: [idPost],
+      orderBy: 'id DESC',
     );
   }
-}
+
+  static Future<void> addComentario(int idPost, String user, String contenido,String fecha) async {
+    final db = await database;
+
+    await db.insert('comentarios', {
+      'idPost': idPost,
+      'user': user,
+      'contenido': contenido,
+      'fecha': fecha,
+    });
+
+    await db.rawUpdate(
+      'UPDATE posts SET comentarios = comentarios + 1 WHERE id = ?',
+      [idPost],
+    );
+  }
+
+
+    Future<void> like(int id) async {
+      final db = await database;
+      await db.rawUpdate(
+        'UPDATE posts SET likes = likes + 1 WHERE id = ?',
+        [id],
+      );
+    }
+  }
