@@ -40,7 +40,6 @@ class db {
 
   static Future<void> register(String user, String pass) async {
     final db = await database;
-    // Inicializamos posts a 0 al registrar
     await db.insert('users', {'user': user, 'pass': pass, 'posts': 0});
   }
 
@@ -48,7 +47,6 @@ class db {
     final db = await database;
     await db.insert('posts', {'rutaImagen': rutaImagen, 'user': user, 'desc': desc, 'fecha': fecha, 'likes':0, 'comentarios':0});
 
-    // Incrementamos el contador de posts del usuario
     await db.rawUpdate(
       'UPDATE users SET posts = COALESCE(posts, 0) + 1 WHERE user = ?',
       [user],
