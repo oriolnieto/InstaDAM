@@ -58,7 +58,6 @@ class db {
   static Future<void> like(int postId, String user) async {
     final db = await database;
 
-    // evitar likes duplicats
     final exists = await db.query(
       'post_likes',
       where: 'post_id = ? AND user = ?',
@@ -76,32 +75,6 @@ class db {
     await db.rawUpdate(
       'UPDATE posts SET likes = likes + 1 WHERE id = ?',
       [postId],
-    );
-  }
-
-  static Future<List<Map<String, dynamic>>> getComentarios(int idPost) async {
-    final dbConn = await database;
-    return await dbConn.query(
-      'comentarios',
-      where: 'idPost = ?',
-      whereArgs: [idPost],
-      orderBy: 'id DESC',
-    );
-  }
-
-  static Future<void> addComentario(
-      int idPost, String user, String contenido, String fecha) async {
-    final dbConn = await database;
-    await dbConn.insert('comentarios', {
-      'idPost': idPost,
-      'user': user,
-      'contenido': contenido,
-      'fecha': fecha,
-    });
-
-    await dbConn.rawUpdate(
-      'UPDATE posts SET comentarios = comentarios + 1 WHERE id = ?',
-      [idPost],
     );
   }
 }
