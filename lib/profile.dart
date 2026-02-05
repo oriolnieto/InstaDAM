@@ -159,6 +159,7 @@ class _profileState extends State<profile> {
                 appState?.changeTheme(valor);
               },
             ),
+
             SwitchListTile(
               title: Text(t('Notificaciones')),
               value: notificacions,

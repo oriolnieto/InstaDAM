@@ -4,19 +4,12 @@ import 'createPost.dart';
 import 'db.dart';
 import 'comentaris.dart';
 
-void main() {
-  runApp(const Feed());
-}
-
 class Feed extends StatelessWidget {
   const Feed({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomePage(),
-    );
+    return const HomePage();
   }
 }
 
@@ -45,12 +38,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: posts.isEmpty
-          ? const Center(
+          ? Center(
         child: Text(
           'Sin posts recientes.',
-          style: TextStyle(fontSize: 24),
+          style: theme.textTheme.headlineSmall,
         ),
       )
           : ListView.builder(
@@ -67,29 +62,25 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Usuari + data
+                // Usuario + fecha + acciones
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
                       Text(
                         post['user'] ?? 'Usuari',
-                        style: const TextStyle(
+                        style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
                         ),
                       ),
                       const SizedBox(width: 10),
                       Text(
                         post['fecha'] ?? '',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                        style: theme.textTheme.bodySmall,
                       ),
-                      const Spacer(), // tot dreta
+                      const Spacer(),
 
-                      // LIKES //
+                      // LIKES
                       IconButton(
                         icon: const Icon(Icons.favorite),
                         onPressed: () async {
@@ -100,30 +91,30 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                       ),
-                      Text ('${post['likes'] ?? 0}'),
+                      Text('${post['likes'] ?? 0}'),
 
                       const SizedBox(width: 10),
 
-                      // COMENTARIS //
+                      // COMENTARIOS
                       IconButton(
-                          icon: const Icon (Icons.comment),
-                          onPressed: () async {
-                            await Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) =>
-                                    CommentsPage(idPost: post['id']),
-                                ),
-                                );
-                                await _loadFeed();
-                          },
+                        icon: const Icon(Icons.comment),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  CommentsPage(idPost: post['id']),
+                            ),
+                          );
+                          await _loadFeed();
+                        },
                       ),
                       Text('${post['comentarios'] ?? 0}'),
                     ],
                   ),
                 ),
 
-
-                // Imatge
+                // Imagen
                 if (post['rutaImagen'] != null &&
                     post['rutaImagen'].toString().isNotEmpty)
                   Image.asset(
@@ -131,19 +122,16 @@ class _HomePageState extends State<HomePage> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Padding(
                       padding: EdgeInsets.all(12),
-                      child: Text(
-                        'Imatge no trobada',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      child: Text('Imatge no trobada'),
                     ),
                   ),
 
-                // Descripció
+                // Descripción
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     post['desc'] ?? '',
-                    style: const TextStyle(fontSize: 14),
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
               ],
@@ -173,7 +161,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => profile()),
+                  MaterialPageRoute(builder: (_) => const profile()),
                 );
               },
             ),
