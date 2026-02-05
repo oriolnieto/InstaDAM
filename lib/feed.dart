@@ -89,13 +89,11 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const Spacer(), // tot dreta
 
-
-
                       // LIKES //
                       IconButton(
                         icon: const Icon(Icons.favorite),
                         onPressed: () async {
-                          await db.like(post['id'], post['user']);
+                          await db.like(post['id']);
                           final data = await db.getPosts();
                           setState(() {
                             posts = data;

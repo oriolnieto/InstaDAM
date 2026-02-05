@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:instadam/createPost.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:async';
@@ -55,27 +56,27 @@ class db {
     final result = await db.query('posts', orderBy: 'id DESC',); return result;
   }
 
-  static Future<void> like(int postId, String user) async {
+  static Future<String?> getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('currentUser');
+  }
+
+  static Future<void> like(int postId) async {
     final db = await database;
-
-    final exists = await db.query(
-      'post_likes',
-      where: 'post_id = ? AND user = ?',
-      whereArgs: [postId, user],
-      limit: 1,
-    );
-
-    if (exists.isNotEmpty) {
+    final user = await getCurrentUser();
+    if (user == null) {
       return;
     }
-    await db.insert(
-      'post_likes',
-      {'post_id': postId, 'user': user},
-    );
-    await db.rawUpdate(
-      'UPDATE posts SET likes = likes + 1 WHERE id = ?',
-      [postId],
-    );
+    try {
+      await db.insert('post_likes', {
+        'post_id': postId,
+        'user': user,
+      });
+      await db.rawUpdate(
+        'UPDATE posts SET likes = likes + 1 WHERE id = ?',
+        [postId],
+      );
+    } catch (e) {}
   }
 
   static Future<List<Map<String, dynamic>>> getComentarios(int idPost) async {
