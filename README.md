@@ -11,6 +11,7 @@ InstaDAM es una app móvil inspirada en Instagram, desarrollada con Flutter y Da
 
 ## Instalación
 
+  intl: ^0.18.1
   cupertino_icons: ^1.0.8
   sqflite: ^2.4.2
   shared_preferences: ^2.5.4
@@ -21,7 +22,13 @@ InstaDAM es una app móvil inspirada en Instagram, desarrollada con Flutter y Da
 ## Estructura del proyecto
 
 assets -
+         > dam2.png
+         > DES.png
+         > gordo.png
+         > gos.png
+         > imatge.png
          > logoApp.png
+         
 
 lib  - 
        > createPost.dart
@@ -29,7 +36,9 @@ lib  -
        > feed.dart
        > login.dart
        > profile.dart
+       > comentaris.dart
        > register.dart
+       > idioma.dart
        > main.dart
        themes -
          >temaClaro.dart
@@ -37,10 +46,10 @@ lib  -
 
 Lo primero que se abre es el main, el cual decide que tema se está usando y se lo otorga a todos las demás páginas. 
 El main te redirige al login, desde donde puedes ir a Register para registrarte, o, iniciar sesión y entrar al feed.
-El feed te mustra todos los cards disponibles de forma aleatoria, desde aquí puedes entrar a cualquier publicación para escribir comentarios.
+El feed te mustra todos los cards (posts) disponibles del más reciente al más antiguo, desde aquí puedes entrar a cualquier publicación para escribir comentarios o dar un like a cualquier publicación.
 Desde el feed se puede abrir el profile, donde puedes cambiar los temas.
-En feed tambien puedes acceder a createPost, donde se pueden crear nuevos post en forma de card que saldrán en el feed.
+En feed tambien puedes acceder a createPost, donde se pueden crear nuevos post, con una descripción personalizada y un desplegable de imagenes de muestra en forma de card que saldrán en el feed.
 
 ## Funcionalidades implementadas
 
-Se ha implementado una función para subir los datos de registro a la BD, una para el login, otra para crear un post (parecido a un registro, insertar datos pero con distintos formatos).
+Se ha implementado una función para subir los datos de registro a la BD, una para el login, otra para crear un post (parecido a un registro, insertar datos pero con distintos formatos), una función para añadir comentarios, otra para recibirlos, otra para dar un like con un getter del currentUser para controlar que el usuario no de más de un like en una publicación i finalmente un getter con todos los posts. Se crean todas las tablas al principio del archivo db.dart .
