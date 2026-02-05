@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'login.dart';
 import 'feed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -146,6 +147,15 @@ class _profileState extends State<profile> {
               onChanged: (valorN) {
                 setState(() => notificacions = valorN);
                 _savePreferences();
+                HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
+                    ),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
               },
             ),
             DropdownButton<String>(
