@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 
 final TextEditingController descController = TextEditingController();
 
-final List<String> imatges = [
+// Lista de imágenes posibles, ahora con opción null para "sin imagen"
+final List<String?> imatges = [
+  null, // Opción sin imagen
   'assets/DES.jpg',
   'assets/gordo.jpg',
   'assets/gos.jpg',
@@ -18,7 +20,6 @@ class createPost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // <-- Eliminamos MaterialApp para heredar el tema global
     return const CreatePostPage();
   }
 }
@@ -31,7 +32,7 @@ class CreatePostPage extends StatefulWidget {
 }
 
 class _CreatePostPageState extends State<CreatePostPage> {
-  String imatgeSeleccionada = imatges.first;
+  String? imatgeSeleccionada = imatges.first;
 
   Future<String> _getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
@@ -40,7 +41,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context); // <-- obtenemos el tema global
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +63,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
               await db.createPost(
-                imatgeSeleccionada,
+                imatgeSeleccionada ?? '', // si no hay imagen, enviar ''
                 user,
                 descController.text,
                 fecha,
@@ -82,30 +83,42 @@ class _CreatePostPageState extends State<CreatePostPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Image.asset(
-              imatgeSeleccionada,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
+            // Mostrar imagen si hay seleccionada, sino un contenedor gris
+            if (imatgeSeleccionada != null)
+              Image.asset(
+                imatgeSeleccionada!,
+                height: 200,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                height: 200,
+                color: Colors.grey[300],
+                child: const Center(
+                  child: Text(
+                    'Sin imagen',
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                ),
+              ),
             const SizedBox(height: 10),
-            DropdownButton<String>(
+            // Dropdown para seleccionar imagen o "sin imagen"
+            DropdownButton<String?>(
               value: imatgeSeleccionada,
               isExpanded: true,
               items: imatges.map((img) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<String?>(
                   value: img,
                   child: Text(
-                    img.split('/').last,
-                    style: theme.textTheme.bodyMedium, // <-- aplica tema
+                    img == null ? 'Sin imagen' : img.split('/').last,
+                    style: theme.textTheme.bodyMedium,
                   ),
                 );
               }).toList(),
               onChanged: (valor) {
-                if (valor != null) {
-                  setState(() {
-                    imatgeSeleccionada = valor;
-                  });
-                }
+                setState(() {
+                  imatgeSeleccionada = valor;
+                });
               },
             ),
             const SizedBox(height: 10),
@@ -113,7 +126,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               controller: descController,
               decoration: const InputDecoration(labelText: 'Descripción'),
               maxLines: 5,
-              style: theme.textTheme.bodyMedium, // <-- aplica tema
+              style: theme.textTheme.bodyMedium,
             ),
           ],
         ),
@@ -124,7 +137,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
           final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
           await db.createPost(
-            imatgeSeleccionada,
+            imatgeSeleccionada ?? '',
             user,
             descController.text,
             fecha,
