@@ -71,13 +71,33 @@ class _profileState extends State<profile> {
     await preferences.clear();
   }
 
+  String t(String key) {
+    final traduccions = {
+      "ca": {
+        "perfil": "Perfil",
+        "posts": "Publicacions",
+        "tema": "Tema fosc",
+        "noti": "Notificacions",
+        "logout": "Tancar sessió",
+      },
+      "es": {
+        "perfil": "Perfil",
+        "posts": "Posts",
+        "tema": "Tema Oscuro",
+        "noti": "Notificaciones",
+        "logout": "Cerrar Sesión",
+      }
+    };
+
+    return traduccions[idioma]?[key] ?? key;
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil'),
+        title: Text(t('Perfil')),
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
@@ -123,14 +143,14 @@ class _profileState extends State<profile> {
                 );
               },
               child: Text(
-                'Posts: $comptadorPost',
+                '${t("Posts:")} $comptadorPost',
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: theme.colorScheme.primary),
               ),
             ),
             const Divider(height: 32),
             SwitchListTile(
-              title: const Text('Tema Oscuro'),
+              title: Text(t('Tema Oscuro')),
               value: temaOscuro,
               onChanged: (valor) {
                 setState(() => temaOscuro = valor);
@@ -140,7 +160,7 @@ class _profileState extends State<profile> {
               },
             ),
             SwitchListTile(
-              title: const Text('Notificaciones'),
+              title: Text(t('Notificaciones')),
               value: notificacions,
               onChanged: (valorN) {
                 setState(() => notificacions = valorN);
@@ -155,9 +175,14 @@ class _profileState extends State<profile> {
                 DropdownMenuItem(value: 'Español', child: Text('Español')),
                 DropdownMenuItem(value: 'English', child: Text('English')),
               ],
-              onChanged: (valorI) {
+              onChanged: (valorI) async {
                 if (valorI != null) {
                   setState(() => idioma = valorI);
+
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString("eleccio", idioma);
+
+                  setState(() {}); // refresh pantalla
                   _savePreferences();
                 }
               },
@@ -173,7 +198,7 @@ class _profileState extends State<profile> {
                 );
               },
               style: theme.elevatedButtonTheme.style,
-              child: const Text('Cerrar Sesión'),
+              child:  Text(t('Cerrar Sesión')),
             ),
           ],
         ),
