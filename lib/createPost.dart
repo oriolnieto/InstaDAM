@@ -13,7 +13,7 @@ final List<String?> imatges = [
   'assets/gordo.jpg',
   'assets/gos.jpg',
   'assets/dam2.jpg',
-  'assets/dam2.jpeg'
+  'assets/commit100.jpeg'
 ];
 
 class createPost extends StatelessWidget {

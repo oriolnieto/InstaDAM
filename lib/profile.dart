@@ -184,7 +184,8 @@ class _profileState extends State<profile> {
               style: theme.textTheme.bodyMedium,
               items: const [
                 DropdownMenuItem(value: 'Español', child: Text('Español')),
-                DropdownMenuItem(value: 'Catalá', child: Text('Catalá')),
+                DropdownMenuItem(value: 'Catala', child: Text('Catala')),
+                DropdownMenuItem(value: 'English', child: Text('English')),
               ],
               onChanged: (valorI) async {
                 if (valorI != null) {
