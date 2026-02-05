@@ -8,7 +8,7 @@ class Llenguatge extends ChangeNotifier {
 
   Future<void> nouLlenguatge() async {
     final prefs = await SharedPreferences.getInstance();
-    _idioma = prefs.getString("_idioma") ?? 'ca';
+    _idioma = prefs.getString("eleccio") ?? 'ca';
     notifyListeners();
   }
 
