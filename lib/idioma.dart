@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Llenguatge extends ChangeNotifier {
-  String _idioma = 'ca'; // idioma per defecte
+  String _idioma = 'ca';
 
   String get eleccio => _idioma;
 
