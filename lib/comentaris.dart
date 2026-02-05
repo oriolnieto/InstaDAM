@@ -43,7 +43,7 @@ class _CommentsPageState extends State <CommentsPage> {
     await db.addComentario(widget.idPost, user, texto, fecha);
 
     commentController.clear();
-    await _loadComentarios(); // refresh
+    await _loadComentarios();
   }
 
   @override
@@ -75,7 +75,6 @@ class _CommentsPageState extends State <CommentsPage> {
           ),
           ),
 
-          // input per comentar
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(

@@ -20,7 +20,7 @@ final ThemeData temaClaro = ThemeData(
 
   // Iconos
   iconTheme: const IconThemeData(
-    color: Color(0xFF4CB7CD), // TODOS los iconos heredarán este color
+    color: Color(0xFF4CB7CD),
   ),
 
   // TextField
@@ -38,8 +38,8 @@ final ThemeData temaClaro = ThemeData(
 
   // FloatingActionButton
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
-    backgroundColor: Color(0xFF4CB7CD), // fondo
-    foregroundColor: Colors.white,      // icono dentro
+    backgroundColor: Color(0xFF4CB7CD),
+    foregroundColor: Colors.white,
   ),
 
   // BottomAppBar

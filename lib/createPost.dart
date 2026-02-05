@@ -63,7 +63,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
               await db.createPost(
-                imatgeSeleccionada ?? '', // si no hay imagen, enviar ''
+                imatgeSeleccionada ?? '',
                 user,
                 descController.text,
                 fecha,
@@ -83,7 +83,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Mostrar imagen si hay seleccionada, sino un contenedor gris
+
             if (imatgeSeleccionada != null)
               Image.asset(
                 imatgeSeleccionada!,
@@ -102,7 +102,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 ),
               ),
             const SizedBox(height: 10),
-            // Dropdown para seleccionar imagen o "sin imagen"
+
             DropdownButton<String?>(
               value: imatgeSeleccionada,
               isExpanded: true,

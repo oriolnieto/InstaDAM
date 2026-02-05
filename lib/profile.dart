@@ -193,7 +193,7 @@ class _profileState extends State<profile> {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString("eleccio", idioma);
 
-                  setState(() {}); // refresh pantalla
+                  setState(() {});
                   _savePreferences();
                 }
               },
