@@ -5,6 +5,24 @@ final ThemeData temaClaro = ThemeData(
 
   scaffoldBackgroundColor: const Color(0xFFFFFFFF),
 
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: const Color(0xFF4CB7CD),
+    brightness: Brightness.light,
+  ),
+
+  // Card
+  cardTheme: const CardThemeData(
+    color: Color(0xFFFFFFFF),
+    shadowColor: Color(0xFF4CB7CD),
+    elevation: 3,
+    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  ),
+
+  // Iconos
+  iconTheme: const IconThemeData(
+    color: Color(0xFF4CB7CD), // TODOS los iconos heredarán este color
+  ),
+
   // TextField
   inputDecorationTheme: const InputDecorationTheme(
     labelStyle: TextStyle(color: Colors.black),
@@ -16,6 +34,17 @@ final ThemeData temaClaro = ThemeData(
       ),
     ),
     border: OutlineInputBorder(),
+  ),
+
+  // FloatingActionButton
+  floatingActionButtonTheme: const FloatingActionButtonThemeData(
+    backgroundColor: Color(0xFF4CB7CD), // fondo
+    foregroundColor: Colors.white,      // icono dentro
+  ),
+
+  // BottomAppBar
+  bottomAppBarTheme: const BottomAppBarThemeData(
+    color: Color(0xFF424242),
   ),
 
   // ElevatedButton
