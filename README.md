@@ -1,6 +1,5 @@
-
 <p align="center">
-  <img src="assets/logoApp.png" alt="Logo" width="350">
+  <img src="assets/logoApp.png" alt="LogoInstaDAM" width="350">
 </p>
 
 # InstaDAM - Grupo 5
@@ -18,6 +17,9 @@ InstaDAM es una app móvil inspirada en Instagram, desarrollada con Flutter y Da
   path: ^1.8.3
 
   - assets/logoApp.png
+  - assets/DES.jpg
+  - assets/gordo.jpg
+  - assets/gos.jpg
 
 ## Estructura del proyecto
 
@@ -40,6 +42,7 @@ lib  -
        > register.dart
        > idioma.dart
        > main.dart
+       
        themes -
          >temaClaro.dart
          >temaOscuro.dart
