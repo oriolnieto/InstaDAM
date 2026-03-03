@@ -6,17 +6,17 @@ final ThemeData temaOscuro = ThemeData(
   scaffoldBackgroundColor: const Color(0xFF000000),
 
   colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFF4CB7CD),
+    seedColor: const Color(0xFF0BD2E0),
     brightness: Brightness.dark,
   ),
 
   // TextField
   inputDecorationTheme: const InputDecorationTheme(
     labelStyle: TextStyle(color: Colors.white),
-    floatingLabelStyle: TextStyle(color: Color(0xFF4CB7CD)),
+    floatingLabelStyle: TextStyle(color: Color(0xFF0BD2E0)),
     focusedBorder: OutlineInputBorder(
       borderSide: BorderSide(
-        color: Color(0xFF4CB7CD),
+        color: Color(0xFF0BD2E0),
         width: 2,
       ),
     ),
@@ -28,7 +28,7 @@ final ThemeData temaOscuro = ThemeData(
     style: ButtonStyle(
       backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
         if (states.contains(WidgetState.pressed)) {
-          return const Color(0xFF4CB7CD);
+          return const Color(0xFF0BD2E0);
         }
         return const Color(0xFFFFFFFF);
       }),
@@ -45,7 +45,7 @@ final ThemeData temaOscuro = ThemeData(
   checkboxTheme: CheckboxThemeData(
     fillColor: WidgetStateProperty.resolveWith<Color>((states) {
       if (states.contains(WidgetState.selected)) {
-        return const Color(0xFF4CB7CD);
+        return const Color(0xFF0BD2E0);
       }
       return const Color(0xFF000000);
     }),

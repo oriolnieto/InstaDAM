@@ -10,7 +10,7 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
   bool logged = prefs.getBool('logged') ?? false;
-  bool isDark = prefs.getBool('isDarkTheme') ?? false;
+  bool isDark = prefs.getBool('isDarkTheme') ?? true;
 
   runApp(MyApp(
     initialLogged: logged,
