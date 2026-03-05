@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login.dart';
+import 'loadScreen.dart';
 import 'feed.dart';
 import 'theme/tema_claro.dart';
 import 'theme/tema_oscuro.dart';
@@ -61,7 +61,7 @@ class _MyAppState extends State<MyApp> {
       theme: temaClaro,
       darkTheme: temaOscuro,
       themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-      home: widget.initialLogged ? const Feed() : const login(),
+      home: widget.initialLogged ? const Feed() : const LoadScreen(),
     );
   }
 }
