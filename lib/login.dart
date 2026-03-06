@@ -52,6 +52,7 @@ class _LoginState extends State<login> {
             children: [
               Image.asset(
                 'assets/logoApp.png',
+                semanticLabel: 'Logo de InstaDAM',
                 height: 300,
                 width: 300,
               ),
