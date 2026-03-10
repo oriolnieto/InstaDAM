@@ -15,7 +15,7 @@ class _LoadScreenState extends State<LoadScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 3), () { // No se com fer que carregui de forma correcta, aixi que fem que esperi 3 segons (simulació)
+    Future.delayed(const Duration(seconds: 3), () { // 3 segons (simulació)
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const login()),
