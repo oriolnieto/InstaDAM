@@ -144,11 +144,11 @@ class _LoginState extends State<login> {
                     ),
                   );
                 },
-                style: theme.elevatedButtonTheme.style,
+                style: theme.elevatedButtonTheme.style?.copyWith(minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),),
                 child: const Text('Ingresar'),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
               ElevatedButton(
                 onPressed: () {

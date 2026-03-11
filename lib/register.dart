@@ -12,6 +12,8 @@ class Register extends StatefulWidget {
 class RegisterState extends State<Register> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FocusNode _passFocus = FocusNode();
+
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +28,13 @@ class RegisterState extends State<Register> {
             Image.asset('assets/logoApp.png', height: 300, width: 300),
             TextField(
               controller: userController,
+              onSubmitted: (_) => FocusScope.of(context).requestFocus(_passFocus),
               decoration: const InputDecoration(labelText: 'Usuario',floatingLabelBehavior: FloatingLabelBehavior.always,),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: passwordController,
+              focusNode: _passFocus,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Contraseña',floatingLabelBehavior: FloatingLabelBehavior.always,),
             ),
@@ -42,10 +46,10 @@ class RegisterState extends State<Register> {
                   const SnackBar(content: Text('Usuario registrado')),
                 );
               },
-              style: theme.elevatedButtonTheme.style,
+              style: theme.elevatedButtonTheme.style?.copyWith(minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),),
               child: const Text('Registrarse'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushReplacement(
