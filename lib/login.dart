@@ -14,8 +14,12 @@ class login extends StatefulWidget {
 class _LoginState extends State<login> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FocusNode _passFocus = FocusNode();
 
   bool rememberMe = false;
+  String? _userError;
+  String? _passError;
+  String? _globalError;
 
   @override
   void initState() {
@@ -36,6 +40,7 @@ class _LoginState extends State<login> {
   void dispose() {
     userController.dispose();
     passwordController.dispose();
+    _passFocus.dispose();
     super.dispose();
   }
 
@@ -59,8 +64,11 @@ class _LoginState extends State<login> {
 
               TextField(
                 controller: userController,
-                decoration: const InputDecoration(
+                onSubmitted: (_) => FocusScope.of(context).requestFocus(_passFocus),
+                decoration: InputDecoration(
                   labelText: 'Usuario',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  errorText: _userError,
                 ),
               ),
 
@@ -68,15 +76,20 @@ class _LoginState extends State<login> {
 
               TextField(
                 controller: passwordController,
+                focusNode: _passFocus,
                 obscureText: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Contraseña',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  errorText: _passError,
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              CheckboxListTile(
+              Semantics(
+                toggled: rememberMe,
+              child: CheckboxListTile(
                 title: const Text('Recordar'),
                 value: rememberMe,
                 onChanged: (value) {
@@ -85,6 +98,14 @@ class _LoginState extends State<login> {
                   });
                 },
                 controlAffinity: ListTileControlAffinity.leading,
+              ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Semantics(
+                liveRegion: true,
+                child: _globalError != null ? Text(_globalError!, style: const TextStyle(color: Colors.red),) : const SizedBox.shrink(),
               ),
 
               const SizedBox(height: 16),
@@ -95,7 +116,12 @@ class _LoginState extends State<login> {
                   final pass = passwordController.text;
 
                   final ok = await db.login(user, pass);
-                  if (!ok) return;
+                  if (!ok) {
+                    setState(() {
+                      _globalError = 'Usuario o contraseña incorrectos';
+                    });
+                    return;
+                  }
 
                   final prefs = await SharedPreferences.getInstance();
 

@@ -26,13 +26,13 @@ class RegisterState extends State<Register> {
             Image.asset('assets/logoApp.png', height: 300, width: 300),
             TextField(
               controller: userController,
-              decoration: const InputDecoration(labelText: 'Usuario'),
+              decoration: const InputDecoration(labelText: 'Usuario',floatingLabelBehavior: FloatingLabelBehavior.always,),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
+              decoration: const InputDecoration(labelText: 'Contraseña',floatingLabelBehavior: FloatingLabelBehavior.always,),
             ),
             const SizedBox(height: 50),
             ElevatedButton(
