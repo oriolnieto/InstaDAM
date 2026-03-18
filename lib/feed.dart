@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'profile.dart';
 import 'createPost.dart';
 import 'db.dart';
@@ -44,7 +45,7 @@ class _HomePageState extends State<HomePage> {
       body: posts.isEmpty
           ? Center(
         child: Text(
-          'Sin posts recientes.',
+          'Sense posts recents.',
           style: theme.textTheme.headlineSmall,
         ),
       )
@@ -53,117 +54,169 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           final post = posts[index];
 
+          final String author = post['user'] ?? 'Usuari';
+          final String date = post['fecha'] ?? '';
+          final String desc = post['desc'] ?? '';
+          final int likes = post['likes'] ?? 0;
+          final int comments = post['comentarios'] ?? 0;
+          final bool isLiked = post['isLiked'] == true;
+          
           return Card(
-            margin:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Usuario + fecha + acciones
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Text(
-                        post['user'] ?? 'Usuari',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        post['fecha'] ?? '',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      const Spacer(),
+            child: Semantics(
+              container: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                      // LIKES
-                      IconButton(
-                        icon: const Icon(Icons.favorite),
-                        onPressed: () async {
-                          await db.like(post['id']);
-                          final data = await db.getPosts();
-                          setState(() {
-                            posts = data;
-                          });
-                        },
+                  Semantics(
+                    label: 'Publicació de $author, data: $date. Descripció: $desc',
+                    excludeSemantics: true,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                author,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                date,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            desc,
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ],
                       ),
-                      Text('${post['likes'] ?? 0}'),
-
-                      const SizedBox(width: 10),
-
-                      // COMENTARIOS
-                      IconButton(
-                        icon: const Icon(Icons.comment),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CommentsPage(idPost: post['id']),
-                            ),
-                          );
-                          await _loadFeed();
-                        },
-                      ),
-                      Text('${post['comentarios'] ?? 0}'),
-                    ],
-                  ),
-                ),
-
-                // Imagen
-                if (post['rutaImagen'] != null &&
-                    post['rutaImagen'].toString().isNotEmpty)
-                  Image.asset(
-                    post['rutaImagen'],
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('Imatge no trobada'),
                     ),
                   ),
 
-                // Descripción
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(
-                    post['desc'] ?? '',
-                    style: theme.textTheme.bodyMedium,
+                  if (post['rutaImagen'] != null &&
+                      post['rutaImagen'].toString().isNotEmpty)
+                    Image.asset(
+                      post['rutaImagen'],
+                      fit: BoxFit.cover,
+                      semanticLabel: 'Imatge adjunta: $desc',
+                      errorBuilder: (_, __, ___) => const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('Imatge no trobada'),
+                      ),
+                    ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Semantics(
+                          button: true,
+                          toggled: isLiked,
+                          label: '$likes likes',
+                          onTapHint: isLiked ? "Treure m'agrada" : "Donar m'agrada",
+                          child: IconButton(
+                            icon: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                semanticLabel: null
+                            ),
+                            onPressed: () async {
+                              await db.like(post['id']);
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isLiked ? "Has tret el m'agrada" : "Has donat m'agrada"),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+
+                              await _loadFeed();
+                            },
+                          ),
+                        ),
+                        ExcludeSemantics(child: Text('$likes')),
+
+                        const SizedBox(width: 20),
+
+                        Semantics(
+                          button: true,
+                          label: '$comments comentaris',
+                          onTapHint: 'Obrir secció de comentaris',
+                          child: IconButton(
+                            icon: const Icon(Icons.comment, semanticLabel: null),
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CommentsPage(idPost: post['id']),
+                                ),
+                              );
+                              await _loadFeed();
+                            },
+                          ),
+                        ),
+                        ExcludeSemantics(child: Text('$comments')),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => createPost()),
-          );
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Semantics(
+        label: 'Crear nova publicació',
+        button: true,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => createPost()),
+            );
+          },
+          child: const Icon(Icons.add, semanticLabel: null),
+        ),
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton(
-              icon: const Icon(Icons.home),
-              onPressed: _loadFeed,
+            Semantics(
+              label: 'Inici',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.home, semanticLabel: null),
+                onPressed: _loadFeed,
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const profile()),
-                );
-              },
+            Semantics(
+              label: 'Perfil',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.person, semanticLabel: null),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const profile()),
+                  );
+                },
+              ),
             ),
           ],
         ),
