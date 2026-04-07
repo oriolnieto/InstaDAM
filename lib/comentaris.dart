@@ -6,13 +6,13 @@ import 'db.dart';
 class CommentsPage extends StatefulWidget {
   final int idPost;
 
-  const CommentsPage ({super.key, required this.idPost});
+  const CommentsPage({super.key, required this.idPost});
 
   @override
   State<CommentsPage> createState() => _CommentsPageState();
 }
 
-class _CommentsPageState extends State <CommentsPage> {
+class _CommentsPageState extends State<CommentsPage> {
   List<Map<String, dynamic>> comentarios = [];
   final TextEditingController commentController = TextEditingController();
 
@@ -21,6 +21,7 @@ class _CommentsPageState extends State <CommentsPage> {
     super.initState();
     _loadComentarios();
   }
+  
   Future<void> _loadComentarios() async {
     final data = await db.getComentarios(widget.idPost);
     setState(() {
@@ -47,49 +48,61 @@ class _CommentsPageState extends State <CommentsPage> {
   }
 
   @override
-  Widget build (BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Comentaris"),
       ),
       body: Column(
         children: [
-          Expanded(child: comentarios.isEmpty ? const Center(child: Text("Encara no hi ha comentaris")) : ListView.builder(
-            itemCount: comentarios.length,
-            itemBuilder: (context, index) {
-              final c = comentarios[index];
+          Expanded(
+            child: comentarios.isEmpty
+                ? const Center(child: Text("Encara no hi ha comentaris"))
+                : ListView.builder(
+              itemCount: comentarios.length,
+              itemBuilder: (context, index) {
+                final c = comentarios[index];
 
-              return ListTile(
-                title: Text(
-                  c['user'] ?? 'Usuari',
-                  style:  const TextStyle(fontWeight: FontWeight.bold),
-                ),
-
-                subtitle: Text(c['contenido'] ?? ''),
-                trailing: Text(
-                  c['fecha'] ?? '',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              );
-            },
+                return MergeSemantics(
+                  child: ListTile(
+                    leading: const ExcludeSemantics(
+                      child: CircleAvatar(child: Icon(Icons.person)),
+                    ),
+                    title: Text(
+                      c['user'] ?? 'Usuari',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(c['contenido'] ?? ''),
+                    trailing: Text(
+                      c['fecha'] ?? '',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-          ),
-
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Expanded(child: TextField(
-                  controller: commentController,
-                  decoration: const InputDecoration(
-                    hintText: "Escriu un comentari! :D",
-                    border: OutlineInputBorder(),
+                Expanded(
+                  child: TextField(
+                    controller: commentController,
+                    decoration: const InputDecoration(
+                      labelText: "Escriu un comentari! :D",
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
-                ),
-
                 const SizedBox(width: 8),
-                IconButton(icon: const Icon(Icons.send), onPressed: addComentario,
+                Semantics(
+                  label: "Enviar comentari",
+                  button: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: addComentario,
+                  ),
                 ),
               ],
             ),
