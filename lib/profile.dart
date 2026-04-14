@@ -20,6 +20,10 @@ class _profileState extends State<profile> {
   bool notificacions = true;
   String idioma = 'Español';
 
+  int followers = 150;
+  int following = 200;
+  String bio = "Aquesta és la meva bio accessible.";
+
   @override
   void initState() {
     super.initState();
@@ -77,28 +81,39 @@ class _profileState extends State<profile> {
       "ca": {
         "perfil": "Perfil",
         "posts": "Publicacions",
+        "seguidors": "Seguidors",
+        "seguint": "Seguint",
+        "editar": "Editar perfil",
         "tema": "Tema fosc",
         "noti": "Notificacions",
         "logout": "Tancar sessió",
+        "foto": "Foto de perfil de ",
+        "post_desc": "Publicació número ",
       },
       "es": {
         "perfil": "Perfil",
         "posts": "Posts",
+        "seguidors": "Seguidores",
+        "seguint": "Siguiendo",
+        "editar": "Editar perfil",
         "tema": "Tema Oscuro",
         "noti": "Notificaciones",
         "logout": "Cerrar Sesión",
+        "foto": "Foto de perfil de ",
+        "post_desc": "Publicación número ",
       }
     };
-
-    return traduccions[idioma]?[key] ?? key;
+    String langKey = (idioma == 'Catala') ? 'ca' : 'es';
+    return traduccions[langKey]?[key] ?? key;
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(t('Perfil')),
+        title: Text(t('perfil')),
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
@@ -120,101 +135,150 @@ class _profileState extends State<profile> {
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/imatge.png'),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              user,
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Posts: $comptadorPost'),
-                  ),
-                );
-              },
-              child: Text(
-                '${t("Posts:")} $comptadorPost',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.primary),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Semantics(
+                label: "${t('foto')} $user",
+                image: true,
+                child: const CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage('assets/imatge.png'),
+                ),
               ),
-            ),
-            const Divider(height: 32),
-            SwitchListTile(
-              title: Text(t('Tema Oscuro')),
-              value: temaOscuro,
-              onChanged: (valor) {
-                setState(() => temaOscuro = valor);
-                _savePreferences();
-                final appState = MyApp.maybeOf(context);
-                appState?.changeTheme(valor);
-              },
-            ),
+              const SizedBox(height: 18),
+              Text(
+                user,
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              Text(bio),
+              const SizedBox(height: 10),
 
-            SwitchListTile(
-              title: Text(t('Notificaciones')),
-              value: notificacions,
-              onChanged: (valorN) {
-                setState(() => notificacions = valorN);
-                _savePreferences();
-                HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
-                    ),
-                    duration: const Duration(seconds: 1),
+              MergeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatColumn(comptadorPost.toString(), t('posts')),
+                    _buildStatColumn(followers.toString(), t('seguidors')),
+                    _buildStatColumn(following.toString(), t('seguint')),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Semantics(
+                label: t('editar'),
+                child: SizedBox(
+                  height: 48,
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    child: Text(t('editar')),
                   ),
-                );
-              },
-            ),
-            DropdownButton<String>(
-              value: idioma,
-              dropdownColor: theme.scaffoldBackgroundColor,
-              style: theme.textTheme.bodyMedium,
-              items: const [
-                DropdownMenuItem(value: 'Español', child: Text('Español')),
-                DropdownMenuItem(value: 'Catala', child: Text('Catala')),
-                DropdownMenuItem(value: 'English', child: Text('English')),
-              ],
-              onChanged: (valorI) async {
-                if (valorI != null) {
-                  setState(() => idioma = valorI);
+                ),
+              ),
 
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString("eleccio", idioma);
+              const Divider(height: 32),
 
-                  setState(() {});
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 4,
+                ),
+                itemCount: comptadorPost > 0 ? comptadorPost : 6,
+                itemBuilder: (context, index) {
+                  return Semantics(
+                    label: "${t('post_desc')} ${index + 1}. 25 likes.",
+                    onTapHint: "Obrir publicació",
+                    button: true,
+                    child: InkWell(
+                      onTap: () {},
+                      child: Container(
+                        color: theme.colorScheme.primaryContainer,
+                        child: const Icon(Icons.grid_on),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const Divider(height: 32),
+
+              SwitchListTile(
+                title: Text(t('tema')),
+                value: temaOscuro,
+                onChanged: (valor) {
+                  setState(() => temaOscuro = valor);
                   _savePreferences();
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await _logout();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const login()),
-                      (route) => false,
-                );
-              },
-              style: theme.elevatedButtonTheme.style,
-              child:  Text(t('Cerrar Sesión')),
-            ),
-          ],
+                  final appState = MyApp.maybeOf(context);
+                  appState?.changeTheme(valor);
+                },
+              ),
+              SwitchListTile(
+                title: Text(t('noti')),
+                value: notificacions,
+                onChanged: (valorN) {
+                  setState(() => notificacions = valorN);
+                  _savePreferences();
+                  HapticFeedback.lightImpact();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
+                      ),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              DropdownButton<String>(
+                value: idioma,
+                items: const [
+                  DropdownMenuItem(value: 'Español', child: Text('Español')),
+                  DropdownMenuItem(value: 'Catala', child: Text('Catala')),
+                  DropdownMenuItem(value: 'English', child: Text('English')),
+                ],
+                onChanged: (valorI) async {
+                  if (valorI != null) {
+                    setState(() => idioma = valorI);
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString("eleccio", idioma);
+                    _savePreferences();
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  await _logout();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const login()),
+                        (route) => false,
+                  );
+                },
+                child: Text(t('logout')),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatColumn(String count, String label) {
+    return Column(
+      children: [
+        Text(count, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(label),
+      ],
     );
   }
 }
