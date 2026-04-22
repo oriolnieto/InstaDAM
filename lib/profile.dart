@@ -6,15 +6,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
 import 'db.dart';
 
-class profile extends StatefulWidget {
-  const profile({super.key});
+class Profile extends StatefulWidget {
+  const Profile({super.key});
 
   @override
-  State<profile> createState() => _profileState();
+  State<Profile> createState() => _ProfileState();
 }
 
-class _profileState extends State<profile> {
-  String user = 'Usuario';
+class _ProfileState extends State<Profile> {
+  String user = 'Usuari';
   int comptadorPost = 0;
   bool temaOscuro = false;
   bool notificacions = true;
@@ -71,11 +71,6 @@ class _profileState extends State<profile> {
     await preferences.setString('language', idioma);
   }
 
-  Future<void> _logout() async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.clear();
-  }
-
   String t(String key) {
     final traduccions = {
       "ca": {
@@ -89,6 +84,12 @@ class _profileState extends State<profile> {
         "logout": "Tancar sessió",
         "foto": "Foto de perfil de ",
         "post_desc": "Publicació número ",
+        "confirm_logout": "Estàs segur que vols tancar la sessió?",
+        "cancel": "Cancel·lar",
+        "accept": "Acceptar",
+        "lang_changed": "Idioma canviat a Català",
+        "theme_on": "Tema fosc activat",
+        "theme_off": "Tema clar activat",
       },
       "es": {
         "perfil": "Perfil",
@@ -101,10 +102,55 @@ class _profileState extends State<profile> {
         "logout": "Cerrar Sesión",
         "foto": "Foto de perfil de ",
         "post_desc": "Publicación número ",
+        "confirm_logout": "¿Estás seguro de que quieres cerrar sesión?",
+        "cancel": "Cancelar",
+        "accept": "Aceptar",
+        "lang_changed": "Idioma cambiado a Español",
+        "theme_on": "Tema oscuro activado",
+        "theme_off": "Tema claro activado",
       }
     };
     String langKey = (idioma == 'Catala') ? 'ca' : 'es';
     return traduccions[langKey]?[key] ?? key;
+  }
+
+  Future<void> _showLogoutDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(t('logout')),
+          content: Text(t('confirm_logout')),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Semantics(
+                label: t('cancel'),
+                child: Text(t('cancel')),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final preferences = await SharedPreferences.getInstance();
+                await preferences.clear();
+                if (mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const login()),
+                        (route) => false,
+                  );
+                }
+              },
+              child: Semantics(
+                label: t('accept'),
+                child: Text(t('accept')),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -120,6 +166,7 @@ class _profileState extends State<profile> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
+              tooltip: "Inici",
               icon: const Icon(Icons.home),
               onPressed: () {
                 Navigator.push(
@@ -129,6 +176,7 @@ class _profileState extends State<profile> {
               },
             ),
             IconButton(
+              tooltip: t('perfil'),
               icon: const Icon(Icons.person),
               onPressed: () {},
             ),
@@ -151,10 +199,9 @@ class _profileState extends State<profile> {
               const SizedBox(height: 18),
               Text(
                 user,
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(bio),
+              Text(bio, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 10),
 
               MergeSemantics(
@@ -171,6 +218,7 @@ class _profileState extends State<profile> {
               const SizedBox(height: 20),
 
               Semantics(
+                button: true,
                 label: t('editar'),
                 child: SizedBox(
                   height: 48,
@@ -211,60 +259,91 @@ class _profileState extends State<profile> {
 
               const Divider(height: 32),
 
-              SwitchListTile(
-                title: Text(t('tema')),
-                value: temaOscuro,
-                onChanged: (valor) {
-                  setState(() => temaOscuro = valor);
-                  _savePreferences();
-                  final appState = MyApp.maybeOf(context);
-                  appState?.changeTheme(valor);
-                },
-              ),
-              SwitchListTile(
-                title: Text(t('noti')),
-                value: notificacions,
-                onChanged: (valorN) {
-                  setState(() => notificacions = valorN);
-                  _savePreferences();
-                  HapticFeedback.lightImpact();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas',
-                      ),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-              ),
-              DropdownButton<String>(
-                value: idioma,
-                items: const [
-                  DropdownMenuItem(value: 'Español', child: Text('Español')),
-                  DropdownMenuItem(value: 'Catala', child: Text('Catala')),
-                  DropdownMenuItem(value: 'English', child: Text('English')),
-                ],
-                onChanged: (valorI) async {
-                  if (valorI != null) {
-                    setState(() => idioma = valorI);
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString("eleccio", idioma);
+              Semantics(
+                container: true,
+                toggled: temaOscuro,
+                label: t('tema'),
+                child: SwitchListTile(
+                  secondary: Icon(temaOscuro ? Icons.dark_mode : Icons.light_mode),
+                  title: Text(t('tema')),
+                  value: temaOscuro,
+                  onChanged: (valor) {
+                    setState(() => temaOscuro = valor);
                     _savePreferences();
-                  }
-                },
+                    MyApp.maybeOf(context)?.changeTheme(valor);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(valor ? t('theme_on') : t('theme_off')), duration: const Duration(seconds: 1)),
+                    );
+                  },
+                ),
               ),
+
+              Semantics(
+                container: true,
+                toggled: notificacions,
+                label: t('noti'),
+                child: SwitchListTile(
+                  secondary: Icon(notificacions ? Icons.notifications_active : Icons.notifications_off),
+                  title: Text(t('noti')),
+                  value: notificacions,
+                  onChanged: (valorN) {
+                    setState(() => notificacions = valorN);
+                    _savePreferences();
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Selecciona idioma:", style: theme.textTheme.bodyLarge),
+                    Semantics(
+                      label: "Selector d'idioma actual: $idioma",
+                      child: DropdownButton<String>(
+                        value: idioma,
+                        items: const [
+                          DropdownMenuItem(value: 'Español', child: Text('Español')),
+                          DropdownMenuItem(value: 'Catala', child: Text('Catala')),
+                        ],
+                        onChanged: (valorI) async {
+                          if (valorI != null) {
+                            setState(() => idioma = valorI);
+                            _savePreferences();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(t('lang_changed'))),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  await _logout();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const login()),
-                        (route) => false,
-                  );
-                },
-                child: Text(t('logout')),
+
+              Semantics(
+                button: true,
+                label: t('logout'),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.exit_to_app),
+                  onPressed: _showLogoutDialog,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    foregroundColor: theme.colorScheme.onErrorContainer,
+                  ),
+                  label: Text(t('logout')),
+                ),
               ),
             ],
           ),
@@ -276,7 +355,7 @@ class _profileState extends State<profile> {
   Widget _buildStatColumn(String count, String label) {
     return Column(
       children: [
-        Text(count, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         Text(label),
       ],
     );
