@@ -4,10 +4,18 @@ import 'loadScreen.dart';
 import 'feed.dart';
 import 'theme/tema_claro.dart';
 import 'theme/tema_oscuro.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicialitzar Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Carregar preferències
   final prefs = await SharedPreferences.getInstance();
   bool logged = prefs.getBool('logged') ?? false;
   bool isDark = prefs.getBool('isDarkTheme') ?? true;
@@ -45,6 +53,7 @@ class _MyAppState extends State<MyApp> {
     isDarkTheme = widget.initialDarkTheme;
   }
 
+  // Canviar tema i guardar-lo
   void changeTheme(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
@@ -58,10 +67,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      //  Temes
       theme: temaClaro,
       darkTheme: temaOscuro,
       themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-      home: widget.initialLogged ? const Feed() : const LoadScreen(),
+
+      //  Navegació inicial
+      home: widget.initialLogged
+          ? const Feed()
+          : const LoadScreen(),
     );
   }
 }
