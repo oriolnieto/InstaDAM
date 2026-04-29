@@ -18,22 +18,26 @@ void main() async {
   // Carregar preferències
   final prefs = await SharedPreferences.getInstance();
   bool logged = prefs.getBool('logged') ?? false;
-  bool isDark = prefs.getBool('isDarkTheme') ?? true;
+  bool isDark = prefs.getBool('isDarkTheme') ?? false;
+  String language = prefs.getString('language') ?? 'Español';
 
   runApp(MyApp(
     initialLogged: logged,
     initialDarkTheme: isDark,
+    initialLanguage: language,
   ));
 }
 
 class MyApp extends StatefulWidget {
   final bool initialLogged;
   final bool initialDarkTheme;
+  final String initialLanguage;
 
   const MyApp({
     super.key,
     required this.initialLogged,
     required this.initialDarkTheme,
+    required this.initialLanguage,
   });
 
   static _MyAppState? maybeOf(BuildContext context) {
@@ -46,14 +50,16 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late bool isDarkTheme;
+  late String language;
 
   @override
   void initState() {
     super.initState();
     isDarkTheme = widget.initialDarkTheme;
+    language = widget.initialLanguage;
   }
 
-  // Canviar tema i guardar-lo
+  // Canviar tema
   void changeTheme(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
@@ -63,17 +69,37 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // Canviar idioma
+  void changeLanguage(String newLang) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', newLang);
+
+    setState(() {
+      language = newLang;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      //  Temes
+      // TEMES
       theme: temaClaro,
       darkTheme: temaOscuro,
       themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
 
-      //  Navegació inicial
+      // ACCESSIBILITAT (text escalable)
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: MediaQuery.of(context).textScaler,
+          ),
+          child: child!,
+        );
+      },
+
+      // NAVEGACIÓ INICIAL
       home: widget.initialLogged
           ? const Feed()
           : const LoadScreen(),

@@ -179,7 +179,7 @@ class _HomePageState extends State<HomePage> {
               button: true,
               child: IconButton(
                 icon: const Icon(Icons.person),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const profile())),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const Profile())),
               ),
             ),
           ],
