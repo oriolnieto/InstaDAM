@@ -1,121 +1,121 @@
-import 'dart:ffi';
-
-import 'package:instadam/createPost.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
-import 'dart:async';
 
 class db {
-  static Database? _database;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await openDatabase(
-      join(await getDatabasesPath(), 'instadam.db'),
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute(
-          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, pass TEXT, posts INTEGER)',
-        );
-        await db.execute(
-          'CREATE TABLE posts(id INTEGER PRIMARY KEY AUTOINCREMENT, rutaImagen TEXT, user TEXT, desc TEXT, fecha TEXT, likes INTEGER, comentarios INTEGER)',
-        );
-        await db.execute(
-          'CREATE TABLE comentarios(id INTEGER PRIMARY KEY AUTOINCREMENT, idPost TEXT, user TEXT, contenido TEXT, fecha TEXT)',
-        );
-        await db.execute(
-          'CREATE TABLE post_likes(post_id INTEGER, user TEXT, PRIMARY KEY (post_id, user))',
-        );
-      },
-    );
-    return _database!;
-  }
-
-  static Future<bool> login(String user, String pass) async {
-    final db = await database;
-    final result = await db.query(
-      'users',
-      where: 'user = ? AND pass = ?',
-      whereArgs: [user, pass],
-    );
-    return result.isNotEmpty;
-  }
-
-  static Future<void> register(String user, String pass) async {
-    final db = await database;
-    await db.insert('users', {'user': user, 'pass': pass});
-  }
-
-  static Future<void> createPost(String rutaImagen, String user, String desc, String fecha) async {
-    final db = await database;
-    await db.insert('posts', {
-      'rutaImagen': rutaImagen,
-      'user': user,
-      'desc': desc,
-      'fecha': fecha,
-      'likes': 0,
-      'comentarios': 0
-    });
-
-    await db.rawUpdate(
-      'UPDATE users SET posts = COALESCE(posts, 0) + 1 WHERE user = ?',
-      [user],
-    );
-
-    print('Post creat: user=$user, desc=$desc, fecha=$fecha');
-  }
-
-  static Future<List<Map<String, dynamic>>> getPosts() async {
-    final db = await database;
-    final result = await db.query('posts', orderBy: 'id DESC');
-    return result;
-  }
-
+  // Usuari actual (igual que abans)
   static Future<String?> getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('currentUser');
   }
 
-  static Future<void> like(int postId) async {
-    final db = await database;
+  // LOGIN (simulat com tenies)
+  static Future<bool> login(String user, String pass) async {
+    final result = await _firestore
+        .collection('users')
+        .where('user', isEqualTo: user)
+        .where('pass', isEqualTo: pass)
+        .get();
+
+    return result.docs.isNotEmpty;
+  }
+
+  // REGISTER
+  static Future<void> register(String user, String pass) async {
+    await _firestore.collection('users').add({
+      'user': user,
+      'pass': pass,
+      'posts': 0,
+    });
+  }
+
+  // CREAR POST
+  static Future<void> createPost(
+      String rutaImagen, String user, String desc, String fecha) async {
+    await _firestore.collection('posts').add({
+      'rutaImagen': rutaImagen,
+      'user': user,
+      'desc': desc,
+      'fecha': fecha,
+      'likesCount': 0,
+      'comentariosCount': 0,
+    });
+  }
+
+  // OBTENIR POSTS
+  static Future<List<Map<String, dynamic>>> getPosts() async {
+    final snapshot = await _firestore
+        .collection('posts')
+        .orderBy('fecha', descending: true)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
+    }).toList();
+  }
+
+  // LIKE
+  static Future<void> like(String postId) async {
     final user = await getCurrentUser();
     if (user == null) return;
 
-    try {
-      await db.insert('post_likes', {
-        'post_id': postId,
-        'user': user,
+    final likeRef = _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(user);
+
+    final doc = await likeRef.get();
+
+    if (doc.exists) {
+      // Treure like
+      await likeRef.delete();
+
+      await _firestore.collection('posts').doc(postId).update({
+        'likesCount': FieldValue.increment(-1),
       });
-      await db.rawUpdate(
-        'UPDATE posts SET likes = likes + 1 WHERE id = ?',
-        [postId],
-      );
-    } catch (e) {}
+    } else {
+      // Donar like
+      await likeRef.set({'liked': true});
+
+      await _firestore.collection('posts').doc(postId).update({
+        'likesCount': FieldValue.increment(1),
+      });
+    }
   }
 
-  static Future<List<Map<String, dynamic>>> getComentarios(int idPost) async {
-    final dbConn = await database;
-    return await dbConn.query(
-      'comentarios',
-      where: 'idPost = ?',
-      whereArgs: [idPost],
-      orderBy: 'id DESC',
-    );
+  // GET COMENTARIS
+  static Future<List<Map<String, dynamic>>> getComentarios(
+      String postId) async {
+    final snapshot = await _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .orderBy('fecha', descending: true)
+        .get();
+
+    return snapshot.docs.map((doc) => doc.data()).toList();
   }
 
-  static Future<void> addComentario(int idPost, String user, String contenido, String fecha) async {
-    final dbConn = await database;
-    await dbConn.insert('comentarios', {
-      'idPost': idPost,
+  // AFEGIR COMENTARI
+  static Future<void> addComentario(
+      String postId, String user, String contenido, String fecha) async {
+    await _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .add({
       'user': user,
-      'contenido': contenido,
+      'text': contenido,
       'fecha': fecha,
     });
 
-    await dbConn.rawUpdate(
-      'UPDATE posts SET comentarios = comentarios + 1 WHERE id = ?',
-      [idPost],
-    );
+    await _firestore.collection('posts').doc(postId).update({
+      'comentariosCount': FieldValue.increment(1),
+    });
   }
 }
