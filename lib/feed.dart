@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'profile.dart';
 import 'createPost.dart';
-import 'db.dart';
 import 'comentaris.dart';
 
 class Feed extends StatelessWidget {
@@ -22,19 +24,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> posts = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadFeed();
+  Future<String> _getCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('currentUser') ?? 'Usuari';
   }
 
-  Future<void> _loadFeed() async {
-    final data = await db.getPosts();
-    setState(() {
-      posts = data;
-    });
+  // ❤️ LIKE / UNLIKE
+  Future<void> toggleLike(String postId) async {
+    final user = await _getCurrentUser();
+    final likeRef = FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(user);
+
+    final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+
+    final doc = await likeRef.get();
+
+    if (doc.exists) {
+      // treure like
+      await likeRef.delete();
+      await postRef.update({
+        'likes': FieldValue.increment(-1),
+      });
+    } else {
+      // posar like
+      await likeRef.set({'user': user});
+      await postRef.update({
+        'likes': FieldValue.increment(1),
+      });
+    }
   }
 
   @override
@@ -42,129 +63,218 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: posts.isEmpty
-          ? Center(
-        child: Text(
-          'Sense posts recents.',
-          style: theme.textTheme.headlineSmall,
-        ),
-      )
-          : ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          final post = posts[index];
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .orderBy('fecha', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
 
-          final String author = post['user'] ?? 'Usuari';
-          final String date = post['fecha'] ?? '';
-          final String desc = post['desc'] ?? '';
-          final int likes = post['likes'] ?? 0;
-          final int comments = post['comentarios'] ?? 0;
-          final bool isLiked = post['isLiked'] == true;
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Semantics(
-                  label: 'Post de $author, data: $date. Text: $desc',
-                  excludeSemantics: true,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+          final posts = snapshot.data!.docs;
+
+          if (posts.isEmpty) {
+            return Center(
+              child: Text(
+                'Sense posts recents.',
+                style: theme.textTheme.headlineSmall,
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              final data = post.data() as Map<String, dynamic>;
+
+              final String author = data['user'] ?? 'Usuari';
+              final String date = data['fecha'] ?? '';
+              final String desc = data['desc'] ?? '';
+              final int likes = data['likes'] ?? 0;
+
+              return FutureBuilder<String>(
+                future: _getCurrentUser(),
+                builder: (context, userSnapshot) {
+
+                  if (!userSnapshot.hasData) {
+                    return const SizedBox();
+                  }
+
+                  final currentUser = userSnapshot.data!;
+
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('posts')
+                        .doc(post.id)
+                        .collection('likes')
+                        .doc(currentUser)
+                        .get(),
+                    builder: (context, likeSnapshot) {
+
+                      final bool isLiked =
+                          likeSnapshot.data?.exists ?? false;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(author, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 10),
-                            Text(date, style: theme.textTheme.bodySmall),
+
+                            // 🔹 CONTINGUT POST (ACCESSIBLE)
+                            Semantics(
+                              label: 'Post de $author, data: $date. Text: $desc',
+                              excludeSemantics: true,
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(author,
+                                            style: theme.textTheme.bodyLarge?.copyWith(
+                                                fontWeight: FontWeight.bold)),
+                                        const SizedBox(width: 10),
+                                        Text(date,
+                                            style: theme.textTheme.bodySmall),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(desc,
+                                        style: theme.textTheme.bodyMedium),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // 🖼 IMATGE
+                            if (data['rutaImagen'] != null &&
+                                data['rutaImagen'].toString().isNotEmpty)
+                              Image.asset(
+                                data['rutaImagen'],
+                                fit: BoxFit.cover,
+                                semanticLabel: 'Imatge adjunta',
+                              ),
+
+                            // 🔹 ACCIONS
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+
+                                  // ❤️ LIKE
+                                  Semantics(
+                                    button: true,
+                                    toggled: isLiked,
+                                    label: "M'agrada. ${isLiked ? 'Activat' : 'Desactivat'}. $likes likes.",
+                                    onTapHint: isLiked
+                                        ? "Treure m'agrada"
+                                        : "Donar m'agrada",
+                                    child: IconButton(
+                                      icon: Icon(
+                                        isLiked
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: isLiked ? Colors.red : null,
+                                      ),
+                                      onPressed: () async {
+                                        await toggleLike(post.id);
+
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  isLiked
+                                                      ? "Has tret el m'agrada"
+                                                      : "Has donat m'agrada"),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+
+                                  ExcludeSemantics(child: Text('$likes')),
+
+                                  const SizedBox(width: 20),
+
+                                  // 💬 COMENTARIS
+                                  StreamBuilder<QuerySnapshot>(
+                                    stream: FirebaseFirestore.instance
+                                        .collection('posts')
+                                        .doc(post.id)
+                                        .collection('comentarios')
+                                        .snapshots(),
+                                    builder: (context, commentSnapshot) {
+
+                                      final int comments =
+                                          commentSnapshot.data?.docs.length ?? 0;
+
+                                      return Row(
+                                        children: [
+                                          Semantics(
+                                            button: true,
+                                            label:
+                                            "Anar a comentaris. Hi ha $comments.",
+                                            onTapHint:
+                                            "Obrir secció de comentaris",
+                                            child: IconButton(
+                                              icon: const Icon(Icons.comment),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => CommentsPage(
+                                                        idPost: post.id),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          ExcludeSemantics(child: Text('$comments')),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(desc, style: theme.textTheme.bodyMedium),
-                      ],
-                    ),
-                  ),
-                ),
-
-                if (post['rutaImagen'] != null && post['rutaImagen'].toString().isNotEmpty)
-                  Image.asset(
-                    post['rutaImagen'],
-                    fit: BoxFit.cover,
-                    semanticLabel: 'Imatge adjunta',
-                  ),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Semantics(
-                        button: true,
-                        toggled: isLiked,
-                        label: "M'agrada. ${isLiked ? 'Activat' : 'Desactivat'}. $likes likes.",
-                        onTapHint: isLiked ? "Treure m'agrada" : "Donar m'agrada",
-                        child: IconButton(
-                          icon: Icon(
-                            isLiked ? Icons.favorite : Icons.favorite_border,
-                            color: isLiked ? Colors.red : null,
-                          ),
-                          onPressed: () async {
-                            await db.like(post['id']);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).clearSnackBars();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(isLiked ? "Has tret el m'agrada" : "Has donat m'agrada"),
-                                ),
-                              );
-                            }
-                            await _loadFeed();
-                          },
-                        ),
-                      ),
-                      ExcludeSemantics(child: Text('$likes')),
-
-                      const SizedBox(width: 20),
-
-                      Semantics(
-                        button: true,
-                        label: "Anar a comentaris. Hi ha $comments.",
-                        onTapHint: "Obrir secció de comentaris",
-                        child: IconButton(
-                          icon: const Icon(Icons.comment),
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => CommentsPage(idPost: post['id'])),
-                            );
-                            await _loadFeed();
-                          },
-                        ),
-                      ),
-                      ExcludeSemantics(child: Text('$comments')),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
           );
         },
       ),
+
+      // ➕ CREAR POST
       floatingActionButton: Semantics(
         label: 'Crear nova publicació',
         button: true,
         child: FloatingActionButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => CreatePostPage()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => CreatePostPage()),
+            );
           },
           child: const Icon(Icons.add),
         ),
       ),
+
+      // 🔻 NAV BAR
       bottomNavigationBar: BottomAppBar(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -172,14 +282,20 @@ class _HomePageState extends State<HomePage> {
             Semantics(
               label: 'Inici',
               button: true,
-              child: IconButton(icon: const Icon(Icons.home), onPressed: _loadFeed),
+              child: IconButton(
+                icon: const Icon(Icons.home),
+                onPressed: () {},
+              ),
             ),
             Semantics(
               label: 'Perfil',
               button: true,
               child: IconButton(
                 icon: const Icon(Icons.person),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const Profile())),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Profile()),
+                ),
               ),
             ),
           ],

@@ -55,16 +55,24 @@ class _LoginState extends State<login> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/logoApp.png',
-                semanticLabel: 'Logo de InstaDAM',
-                height: 300,
-                width: 300,
+
+              // 🔹 LOGO (no llegit com "imatge")
+              ExcludeSemantics(
+                child: Image.asset(
+                  'assets/logoApp.png',
+                  height: 300,
+                  width: 300,
+                ),
               ),
 
+              const SizedBox(height: 20),
+
+              // 🔹 USER FIELD
               TextField(
                 controller: userController,
-                onSubmitted: (_) => FocusScope.of(context).requestFocus(_passFocus),
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) =>
+                    FocusScope.of(context).requestFocus(_passFocus),
                 decoration: InputDecoration(
                   labelText: 'Usuario',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -74,10 +82,12 @@ class _LoginState extends State<login> {
 
               const SizedBox(height: 16),
 
+              // 🔹 PASSWORD FIELD
               TextField(
                 controller: passwordController,
                 focusNode: _passFocus,
                 obscureText: true,
+                textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -87,80 +97,121 @@ class _LoginState extends State<login> {
 
               const SizedBox(height: 8),
 
+              // 🔹 CHECKBOX ACCESSIBLE
               Semantics(
+                label: 'Recordar usuario',
                 toggled: rememberMe,
-              child: CheckboxListTile(
-                title: const Text('Recordar'),
-                value: rememberMe,
-                onChanged: (value) {
-                  setState(() {
-                    rememberMe = value ?? false;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
+                onTapHint: rememberMe
+                    ? 'Desactivar recordar usuario'
+                    : 'Activar recordar usuario',
+                child: CheckboxListTile(
+                  title: const Text('Recordar'),
+                  value: rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      rememberMe = value ?? false;
+                    });
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
               ),
 
               const SizedBox(height: 16),
 
+              // 🔹 ERROR GLOBAL ACCESSIBLE
               Semantics(
                 liveRegion: true,
-                child: _globalError != null ? Text(_globalError!, style: const TextStyle(color: Colors.red),) : const SizedBox.shrink(),
+                child: _globalError != null
+                    ? Text(
+                  _globalError!,
+                  style: const TextStyle(color: Colors.red),
+                )
+                    : const SizedBox.shrink(),
               ),
 
               const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: () async {
-                  final user = userController.text;
-                  final pass = passwordController.text;
+              // 🔹 BOTÓ LOGIN ACCESSIBLE
+              Semantics(
+                button: true,
+                label: 'Iniciar sesión',
+                onTapHint: 'Validar credenciales y acceder',
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final user = userController.text.trim();
+                    final pass = passwordController.text.trim();
 
-                  final ok = await db.login(user, pass);
-                  if (!ok) {
+                    // VALIDACIÓ
                     setState(() {
-                      _globalError = 'Usuario o contraseña incorrectos';
+                      _userError =
+                      user.isEmpty ? 'El usuario es obligatorio' : null;
+                      _passError =
+                      pass.isEmpty ? 'La contraseña es obligatoria' : null;
+                      _globalError = null;
                     });
-                    return;
-                  }
 
-                  final prefs = await SharedPreferences.getInstance();
+                    if (_userError != null || _passError != null) return;
 
-                  await prefs.setString('currentUser', user);
+                    final ok = await db.login(user, pass);
 
-                  if (rememberMe) {
-                    await prefs.setString('username', user);
-                    await prefs.setBool('logged', true);
-                    await prefs.setBool('remember', true);
-                  } else {
-                    await prefs.remove('username');
-                    await prefs.setBool('logged', false);
-                    await prefs.setBool('remember', false);
-                  }
+                    if (!ok) {
+                      setState(() {
+                        _globalError =
+                        'Usuario o contraseña incorrectos';
+                      });
+                      return;
+                    }
 
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const Feed(),
-                    ),
-                  );
-                },
-                style: theme.elevatedButtonTheme.style?.copyWith(minimumSize: const WidgetStatePropertyAll(Size(double.infinity, 48)),),
-                child: const Text('Ingresar'),
+                    final prefs = await SharedPreferences.getInstance();
+
+                    await prefs.setString('currentUser', user);
+
+                    if (rememberMe) {
+                      await prefs.setString('username', user);
+                      await prefs.setBool('logged', true);
+                      await prefs.setBool('remember', true);
+                    } else {
+                      await prefs.remove('username');
+                      await prefs.setBool('logged', false);
+                      await prefs.setBool('remember', false);
+                    }
+
+                    if (!mounted) return;
+
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const Feed(),
+                      ),
+                    );
+                  },
+                  style: theme.elevatedButtonTheme.style?.copyWith(
+                    minimumSize:
+                    const WidgetStatePropertyAll(Size(double.infinity, 48)),
+                  ),
+                  child: const Text('Ingresar'),
+                ),
               ),
 
               const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const Register(),
-                    ),
-                  );
-                },
-                style: theme.elevatedButtonTheme.style,
-                child: const Text('Ir a Registro'),
+              // 🔹 BOTÓ REGISTRE ACCESSIBLE
+              Semantics(
+                button: true,
+                label: 'Ir a registro',
+                onTapHint: 'Crear una nueva cuenta',
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const Register(),
+                      ),
+                    );
+                  },
+                  style: theme.elevatedButtonTheme.style,
+                  child: const Text('Ir a Registro'),
+                ),
               ),
             ],
           ),

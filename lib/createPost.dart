@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // 🔥 Firebase
 import 'db.dart';
 import 'feed.dart';
-import 'package:intl/intl.dart';
 
 final TextEditingController descController = TextEditingController();
 
 // Lista de imágenes posibles
 final List<String?> imatges = [
-  null, // Opción sin imagen
+  null,
   'assets/DES.jpg',
   'assets/gordo.jpg',
   'assets/gos.jpg',
@@ -35,7 +36,6 @@ class CreatePostPage extends StatefulWidget {
 class _CreatePostPageState extends State<CreatePostPage> {
   String? imatgeSeleccionada = imatges.first;
 
-  // Variables d'estat per a l'accessibilitat
   bool _isLoading = false;
   String? _errorDescripcio;
 
@@ -44,9 +44,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     return prefs.getString('currentUser') ?? 'Usuari';
   }
 
-  // Funció unificada per publicar des del FAB i l'AppBar
   Future<void> _publicarPost() async {
-    // 2. Validació: Error si descripció buida
     if (descController.text.trim().isEmpty) {
       setState(() {
         _errorDescripcio = 'La descripción es obligatoria.';
@@ -54,7 +52,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
       return;
     }
 
-    // 3. Botó publicar: No permetre doble enviament i estat de càrrega
     setState(() {
       _errorDescripcio = null;
       _isLoading = true;
@@ -63,6 +60,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final user = await _getCurrentUser();
     final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
+    // 🔹 SQLite (el teu sistema actual)
     await db.createPost(
       imatgeSeleccionada ?? '',
       user,
@@ -70,11 +68,28 @@ class _CreatePostPageState extends State<CreatePostPage> {
       fecha,
     );
 
+    // 🔥 Firebase
+    final docRef = await FirebaseFirestore.instance
+        .collection('posts')
+        .add({
+      'user': user,
+      'desc': descController.text,
+      'fecha': fecha,
+      'imagen': imatgeSeleccionada ?? '',
+      'likes': 0,
+      'comentarios': 0,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    // (Opcional PRO) guardar el id dins del doc
+    await docRef.update({
+      'id': docRef.id,
+    });
+
     descController.clear();
 
     if (!mounted) return;
 
-    // 4. Confirmació de publicació amb liveRegion: true
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Semantics(
@@ -85,7 +100,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
       ),
     );
 
-    // Anem al Feed sense 'const' per evitar l'error
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => Feed()),
@@ -101,9 +115,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
         title: const Text('Crear Post'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Atrás', // Accessibilitat bàsica pel botó enrere
+          tooltip: 'Atrás',
           onPressed: () {
-            // Anem al Feed sense 'const' per evitar l'error
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (_) => Feed()),
@@ -111,17 +124,15 @@ class _CreatePostPageState extends State<CreatePostPage> {
           },
         ),
         actions: [
-          // 3. Botó 'Publicar' (AppBar)
           Semantics(
             label: 'Publicar post',
             child: IconButton(
-              // Mida mínima 48dp garantida amb constraints
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: _isLoading
                   ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2)
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
               )
                   : const Icon(Icons.check),
               onPressed: _isLoading ? null : _publicarPost,
@@ -132,10 +143,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Alinear textos a l'esquerra
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // Imatge (No pot desaparèixer visualment per TalkBack)
+            // Imatge
             Semantics(
               image: true,
               label: imatgeSeleccionada == null
@@ -155,16 +165,18 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 child: const Center(
                   child: Text(
                     'Sin imagen',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.black54),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 10),
 
-            // 1. Selector d'imatge accessible
+            // Selector
             Semantics(
-              label: 'Selector de imagen. Estado: ${imatgeSeleccionada == null ? "Ninguna imagen seleccionada" : "Imagen seleccionada"}',
+              label:
+              'Selector de imagen. Estado: ${imatgeSeleccionada == null ? "Ninguna imagen seleccionada" : "Imagen seleccionada"}',
               child: DropdownButton<String?>(
                 value: imatgeSeleccionada,
                 isExpanded: true,
@@ -177,7 +189,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     ),
                   );
                 }).toList(),
-                onChanged: _isLoading ? null : (valor) {
+                onChanged: _isLoading
+                    ? null
+                    : (valor) {
                   setState(() {
                     imatgeSeleccionada = valor;
                   });
@@ -186,20 +200,19 @@ class _CreatePostPageState extends State<CreatePostPage> {
             ),
             const SizedBox(height: 20),
 
-            // 2. Etiqueta visible fora del camp TextField
             Text(
               'Descripción del post',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
 
-            // 2. TextField amb validació d'error
             TextField(
               controller: descController,
-              enabled: !_isLoading, // Bloquejar mentre carrega
+              enabled: !_isLoading,
               decoration: InputDecoration(
                 labelText: 'Descripción',
-                errorText: _errorDescripcio, // Talkback llegeix això automàticament
+                errorText: _errorDescripcio,
                 border: const OutlineInputBorder(),
               ),
               maxLines: 5,
@@ -208,12 +221,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
           ],
         ),
       ),
-      // 3. Botó 'Publicar' (FloatingActionButton)
       floatingActionButton: Semantics(
         label: 'Publicar post',
         child: FloatingActionButton(
           onPressed: _isLoading ? null : _publicarPost,
-          // Un FAB ja compleix la mida mínima de 48dp (per defecte són 56dp)
           child: _isLoading
               ? const CircularProgressIndicator(color: Colors.white)
               : const Icon(Icons.check),

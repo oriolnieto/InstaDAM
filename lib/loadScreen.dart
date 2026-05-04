@@ -15,7 +15,7 @@ class _LoadScreenState extends State<LoadScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 3), () { // 3 segons (simulació)
+    Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const login()),
@@ -28,21 +28,30 @@ class _LoadScreenState extends State<LoadScreen> {
     return Scaffold(
       body: Center(
         child: Semantics(
+          // 🔥 CLAU per TalkBack
+          label: 'InstaDAM. L\'aplicació s\'està carregant',
+          liveRegion: true,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/logoApp.png',
-                height: 300,
-                width: 300,
-                semanticLabel: 'Logo de InstaDAM',
+
+              // 🖼 Logo
+              ExcludeSemantics(
+                child: Image.asset(
+                  'assets/logoApp.png',
+                  height: 300,
+                  width: 300,
+                ),
               ),
 
               const SizedBox(height: 30),
 
-              const Text(
-                'Se esta cargando InstaDAM..',
-                style: TextStyle(fontSize: 16),
+              // 📝 Text visual (no cal duplicar lectura)
+              ExcludeSemantics(
+                child: Text(
+                  'S\'està carregant InstaDAM...',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
             ],
           ),

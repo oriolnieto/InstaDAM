@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'db.dart';
 
 class CommentsPage extends StatefulWidget {
@@ -21,11 +22,27 @@ class _CommentsPageState extends State<CommentsPage> {
     super.initState();
     _loadComentarios();
   }
-  
+
+  // 🔥 Carregar comentaris (SQLite + Firebase)
   Future<void> _loadComentarios() async {
+    // 🔹 SQLite
     final data = await db.getComentarios(widget.idPost);
+
+    // 🔥 Firebase (IMPORTANT: id com String)
+    final snapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.idPost.toString()) // ✅ FIX
+        .collection('comentarios')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    final firebaseComentarios = snapshot.docs.map((doc) {
+      return doc.data();
+    }).toList();
+
     setState(() {
-      comentarios = data;
+      comentarios =
+      firebaseComentarios.isNotEmpty ? firebaseComentarios : data;
     });
   }
 
@@ -34,6 +51,7 @@ class _CommentsPageState extends State<CommentsPage> {
     return prefs.getString('currentUser') ?? 'Usuari';
   }
 
+  // 🔥 Afegir comentari (SQLite + Firebase)
   Future<void> addComentario() async {
     final texto = commentController.text.trim();
     if (texto.isEmpty) return;
@@ -41,7 +59,20 @@ class _CommentsPageState extends State<CommentsPage> {
     final user = await _getCurrentUser();
     final fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
+    // 🔹 SQLite
     await db.addComentario(widget.idPost, user, texto, fecha);
+
+    // 🔥 Firebase (IMPORTANT: id com String)
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.idPost.toString()) // ✅ FIX
+        .collection('comentarios')
+        .add({
+      'user': user,
+      'contenido': texto,
+      'fecha': fecha,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
 
     commentController.clear();
     await _loadComentarios();
@@ -66,11 +97,14 @@ class _CommentsPageState extends State<CommentsPage> {
                 return MergeSemantics(
                   child: ListTile(
                     leading: const ExcludeSemantics(
-                      child: CircleAvatar(child: Icon(Icons.person)),
+                      child: CircleAvatar(
+                        child: Icon(Icons.person),
+                      ),
                     ),
                     title: Text(
                       c['user'] ?? 'Usuari',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(c['contenido'] ?? ''),
                     trailing: Text(
