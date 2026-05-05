@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'db.dart';
 import 'register.dart';
 import 'feed.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class login extends StatefulWidget {
   const login({super.key});
@@ -141,49 +142,52 @@ class _LoginState extends State<login> {
                     final user = userController.text.trim();
                     final pass = passwordController.text.trim();
 
-                    // VALIDACIÓ
                     setState(() {
-                      _userError =
-                      user.isEmpty ? 'El usuario es obligatorio' : null;
-                      _passError =
-                      pass.isEmpty ? 'La contraseña es obligatoria' : null;
+                      _userError = user.isEmpty ? 'El usuario es obligatorio' : null;
+                      _passError = pass.isEmpty ? 'La contraseña es obligatoria' : null;
                       _globalError = null;
                     });
 
                     if (_userError != null || _passError != null) return;
 
-                    final ok = await db.login(user, pass);
+                    try {
+                      final email = "$user@instadam.com";
 
-                    if (!ok) {
+                      // 🔥 LOGIN REAL CON FIREBASE AUTH
+                      await FirebaseAuth.instance.signInWithEmailAndPassword(
+                        email: email,
+                        password: pass,
+                      );
+
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('currentUser', user);
+
+                      if (rememberMe) {
+                        await prefs.setString('username', user);
+                        await prefs.setBool('logged', true);
+                        await prefs.setBool('remember', true);
+                      } else {
+                        await prefs.remove('username');
+                        await prefs.setBool('logged', false);
+                        await prefs.setBool('remember', false);
+                      }
+
+                      if (!mounted) return;
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const Feed()),
+                      );
+
+                    } on FirebaseAuthException catch (e) {
                       setState(() {
-                        _globalError =
-                        'Usuario o contraseña incorrectos';
+                        _globalError = e.message ?? "Error de autenticación";
                       });
-                      return;
+                    } catch (e) {
+                      setState(() {
+                        _globalError = "Error inesperado";
+                      });
                     }
-
-                    final prefs = await SharedPreferences.getInstance();
-
-                    await prefs.setString('currentUser', user);
-
-                    if (rememberMe) {
-                      await prefs.setString('username', user);
-                      await prefs.setBool('logged', true);
-                      await prefs.setBool('remember', true);
-                    } else {
-                      await prefs.remove('username');
-                      await prefs.setBool('logged', false);
-                      await prefs.setBool('remember', false);
-                    }
-
-                    if (!mounted) return;
-
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const Feed(),
-                      ),
-                    );
                   },
                   style: theme.elevatedButtonTheme.style?.copyWith(
                     minimumSize:

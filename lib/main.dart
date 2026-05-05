@@ -10,13 +10,18 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicialitzar Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    // 🔥 Inicialitzar Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    print("Error inicialitzant Firebase: $e");
+  }
 
-  // Carregar preferències
+  // 📦 Carregar preferències
   final prefs = await SharedPreferences.getInstance();
+
   bool logged = prefs.getBool('logged') ?? false;
   bool isDark = prefs.getBool('isDarkTheme') ?? false;
   String language = prefs.getString('language') ?? 'Español';
@@ -59,7 +64,7 @@ class _MyAppState extends State<MyApp> {
     language = widget.initialLanguage;
   }
 
-  // Canviar tema
+  // 🌙 Canviar tema
   void changeTheme(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', value);
@@ -69,7 +74,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  // Canviar idioma
+  // 🌍 Canviar idioma
   void changeLanguage(String newLang) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', newLang);
@@ -84,22 +89,23 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      // TEMES
+      // 🎨 TEMES
       theme: temaClaro,
       darkTheme: temaOscuro,
       themeMode: isDarkTheme ? ThemeMode.dark : ThemeMode.light,
 
-      // ACCESSIBILITAT (text escalable)
+      // ♿ ACCESSIBILITAT → Text escalable (IMPORTANT per WCAG)
       builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: MediaQuery.of(context).textScaler,
+          data: mediaQuery.copyWith(
+            textScaler: mediaQuery.textScaler,
           ),
           child: child!,
         );
       },
 
-      // NAVEGACIÓ INICIAL
+      // 🧭 NAVEGACIÓ INICIAL
       home: widget.initialLogged
           ? const Feed()
           : const LoadScreen(),

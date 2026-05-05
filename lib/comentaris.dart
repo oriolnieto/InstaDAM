@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'db.dart';
 
 class CommentsPage extends StatefulWidget {
-  final int idPost;
+  final String idPost;
 
   const CommentsPage({super.key, required this.idPost});
 

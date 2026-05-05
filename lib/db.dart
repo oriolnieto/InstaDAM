@@ -4,61 +4,101 @@ import 'package:shared_preferences/shared_preferences.dart';
 class db {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Usuari actual (igual que abans)
+  // 🔹 USUARIO ACTUAL
   static Future<String?> getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('currentUser');
   }
 
-  // LOGIN (simulat com tenies)
+  // 🔹 LOGIN
   static Future<bool> login(String user, String pass) async {
-    final result = await _firestore
-        .collection('users')
-        .where('user', isEqualTo: user)
-        .where('pass', isEqualTo: pass)
-        .get();
+    try {
+      final result = await _firestore
+          .collection('users')
+          .where('user', isEqualTo: user)
+          .get();
 
-    return result.docs.isNotEmpty;
+      if (result.docs.isEmpty) return false;
+
+      final userData = result.docs.first.data();
+
+      return userData['pass'] == pass;
+    } catch (e) {
+      print("Error login: $e");
+      return false;
+    }
+  }
+  // 🔹 REGISTER
+  static Future<String?> register(String user, String pass) async {
+    try {
+      final exists = await _firestore
+          .collection('users')
+          .where('user', isEqualTo: user)
+          .get();
+
+      if (exists.docs.isNotEmpty) {
+        return "El usuario ya existe";
+      }
+
+      await _firestore.collection('users').add({
+        'user': user,
+        'pass': pass,
+        'posts': 0,
+      });
+
+      return null; // OK
+    } catch (e) {
+      print("Error register: $e");
+      return "Error al registrar usuario";
+    }
   }
 
-  // REGISTER
-  static Future<void> register(String user, String pass) async {
-    await _firestore.collection('users').add({
-      'user': user,
-      'pass': pass,
-      'posts': 0,
-    });
-  }
-
-  // CREAR POST
+  // 🔹 CREAR POST
   static Future<void> createPost(
       String rutaImagen, String user, String desc, String fecha) async {
     await _firestore.collection('posts').add({
       'rutaImagen': rutaImagen,
       'user': user,
       'desc': desc,
-      'fecha': fecha,
+      'fecha': Timestamp.now(), // 🔥 importante
       'likesCount': 0,
       'comentariosCount': 0,
     });
   }
 
-  // OBTENIR POSTS
+  // 🔹 OBTENIR POSTS
   static Future<List<Map<String, dynamic>>> getPosts() async {
+    final user = await getCurrentUser();
+
     final snapshot = await _firestore
         .collection('posts')
         .orderBy('fecha', descending: true)
         .get();
 
-    return snapshot.docs.map((doc) {
-      return {
+    List<Map<String, dynamic>> posts = [];
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+
+      // 🔥 comprovar si l'usuari ha fet like
+      final likeDoc = await _firestore
+          .collection('posts')
+          .doc(doc.id)
+          .collection('likes')
+          .doc(user)
+          .get();
+
+      posts.add({
         'id': doc.id,
-        ...doc.data(),
-      };
-    }).toList();
+        ...data,
+        'isLiked': likeDoc.exists,
+      });
+    }
+
+    return posts;
   }
 
-  // LIKE
+  // 🔹 LIKE / UNLIKE
   static Future<void> like(String postId) async {
     final user = await getCurrentUser();
     if (user == null) return;
@@ -72,14 +112,14 @@ class db {
     final doc = await likeRef.get();
 
     if (doc.exists) {
-      // Treure like
+      // 🔥 UNLIKE
       await likeRef.delete();
 
       await _firestore.collection('posts').doc(postId).update({
         'likesCount': FieldValue.increment(-1),
       });
     } else {
-      // Donar like
+      // 🔥 LIKE
       await likeRef.set({'liked': true});
 
       await _firestore.collection('posts').doc(postId).update({
@@ -88,7 +128,7 @@ class db {
     }
   }
 
-  // GET COMENTARIS
+  // 🔹 OBTENIR COMENTARIS
   static Future<List<Map<String, dynamic>>> getComentarios(
       String postId) async {
     final snapshot = await _firestore
@@ -98,10 +138,15 @@ class db {
         .orderBy('fecha', descending: true)
         .get();
 
-    return snapshot.docs.map((doc) => doc.data()).toList();
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
+    }).toList();
   }
 
-  // AFEGIR COMENTARI
+  // 🔹 AFEGIR COMENTARI
   static Future<void> addComentario(
       String postId, String user, String contenido, String fecha) async {
     await _firestore
@@ -110,8 +155,8 @@ class db {
         .collection('comments')
         .add({
       'user': user,
-      'text': contenido,
-      'fecha': fecha,
+      'contenido': contenido, // 🔥 IMPORTANT (igual que UI)
+      'fecha': Timestamp.now(),
     });
 
     await _firestore.collection('posts').doc(postId).update({

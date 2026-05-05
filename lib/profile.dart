@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
 import 'db.dart';
 
+// 🔥 FIREBASE
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Profile extends StatefulWidget {
   const Profile({super.key});
 
@@ -24,6 +27,9 @@ class _ProfileState extends State<Profile> {
   int following = 200;
   String bio = "Aquesta és la meva bio accessible.";
 
+  // 🔥 POSTS FIREBASE
+  List<Map<String, dynamic>> userPosts = [];
+
   @override
   void initState() {
     super.initState();
@@ -33,25 +39,34 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      user = prefs.getString('currentUser') ?? 'Usuari';
-    });
-    await _loadUserPosts();
+    user = prefs.getString('currentUser') ?? 'Usuari';
+
+
+    await _loadUserPostsFirebase(); // 🔥 Firebase
+
+    setState(() {});
   }
 
-  Future<void> _loadUserPosts() async {
-    final database = await db.database;
-    final usuarios = await database.query(
-      'users',
-      where: 'user = ?',
-      whereArgs: [user],
-      limit: 1,
-    );
 
-    if (usuarios.isNotEmpty) {
-      setState(() {
-        comptadorPost = (usuarios.first['posts'] as int?) ?? 0;
-      });
+
+  // 🔥 FIREBASE POSTS
+  Future<void> _loadUserPostsFirebase() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .where('user', isEqualTo: user)
+          .get();
+
+      userPosts = snapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          ...doc.data(),
+        };
+      }).toList();
+
+      comptadorPost = userPosts.length;
+    } catch (e) {
+      print("Error carregant posts Firebase: $e");
     }
   }
 
@@ -161,33 +176,14 @@ class _ProfileState extends State<Profile> {
       appBar: AppBar(
         title: Text(t('perfil')),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-              tooltip: "Inici",
-              icon: const Icon(Icons.home),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const Feed()),
-                );
-              },
-            ),
-            IconButton(
-              tooltip: t('perfil'),
-              icon: const Icon(Icons.person),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+
+              // FOTO
               Semantics(
                 label: "${t('foto')} $user",
                 image: true,
@@ -196,14 +192,15 @@ class _ProfileState extends State<Profile> {
                   backgroundImage: AssetImage('assets/imatge.png'),
                 ),
               ),
+
               const SizedBox(height: 18),
-              Text(
-                user,
-                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              Text(bio, style: theme.textTheme.bodyMedium),
+
+              Text(user, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Text(bio),
+
               const SizedBox(height: 10),
 
+              // STATS
               MergeSemantics(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -215,135 +212,50 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
 
-              const SizedBox(height: 20),
-
-              Semantics(
-                button: true,
-                label: t('editar'),
-                child: SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    child: Text(t('editar')),
-                  ),
-                ),
-              ),
-
               const Divider(height: 32),
 
+              // 🔥 GRID AMB POSTS REALS
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  mainAxisSpacing: 4,
-                  crossAxisSpacing: 4,
                 ),
-                itemCount: comptadorPost > 0 ? comptadorPost : 6,
+                itemCount: userPosts.length,
                 itemBuilder: (context, index) {
+                  final post = userPosts[index];
+
                   return Semantics(
-                    label: "${t('post_desc')} ${index + 1}. 25 likes.",
-                    onTapHint: "Obrir publicació",
+                    label: "${t('post_desc')} ${index + 1}. ${post['likes'] ?? 0} likes",
                     button: true,
-                    child: InkWell(
-                      onTap: () {},
-                      child: Container(
-                        color: theme.colorScheme.primaryContainer,
-                        child: const Icon(Icons.grid_on),
-                      ),
+                    child: Container(
+                      margin: const EdgeInsets.all(2),
+                      color: theme.colorScheme.primaryContainer,
+                      child: post['rutaImagen'] != null
+                          ? Image.asset(post['rutaImagen'], fit: BoxFit.cover)
+                          : const Icon(Icons.image),
                     ),
                   );
                 },
               ),
 
-              const Divider(height: 32),
-
-              Semantics(
-                container: true,
-                toggled: temaOscuro,
-                label: t('tema'),
-                child: SwitchListTile(
-                  secondary: Icon(temaOscuro ? Icons.dark_mode : Icons.light_mode),
-                  title: Text(t('tema')),
-                  value: temaOscuro,
-                  onChanged: (valor) {
-                    setState(() => temaOscuro = valor);
-                    _savePreferences();
-                    MyApp.maybeOf(context)?.changeTheme(valor);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(valor ? t('theme_on') : t('theme_off')), duration: const Duration(seconds: 1)),
-                    );
-                  },
-                ),
-              ),
-
-              Semantics(
-                container: true,
-                toggled: notificacions,
-                label: t('noti'),
-                child: SwitchListTile(
-                  secondary: Icon(notificacions ? Icons.notifications_active : Icons.notifications_off),
-                  title: Text(t('noti')),
-                  value: notificacions,
-                  onChanged: (valorN) {
-                    setState(() => notificacions = valorN);
-                    _savePreferences();
-                    HapticFeedback.lightImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(valorN ? 'Notificaciones activadas' : 'Notificaciones desactivadas'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Selecciona idioma:", style: theme.textTheme.bodyLarge),
-                    Semantics(
-                      label: "Selector d'idioma actual: $idioma",
-                      child: DropdownButton<String>(
-                        value: idioma,
-                        items: const [
-                          DropdownMenuItem(value: 'Español', child: Text('Español')),
-                          DropdownMenuItem(value: 'Catala', child: Text('Catala')),
-                        ],
-                        onChanged: (valorI) async {
-                          if (valorI != null) {
-                            setState(() => idioma = valorI);
-                            _savePreferences();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(t('lang_changed'))),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
               const SizedBox(height: 20),
 
-              Semantics(
-                button: true,
-                label: t('logout'),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.exit_to_app),
-                  onPressed: _showLogoutDialog,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.errorContainer,
-                    foregroundColor: theme.colorScheme.onErrorContainer,
-                  ),
-                  label: Text(t('logout')),
-                ),
+              // SWITCH TEMA
+              SwitchListTile(
+                title: Text(t('tema')),
+                value: temaOscuro,
+                onChanged: (valor) {
+                  setState(() => temaOscuro = valor);
+                  _savePreferences();
+                  MyApp.maybeOf(context)?.changeTheme(valor);
+                },
+              ),
+
+              // LOGOUT
+              ElevatedButton(
+                onPressed: _showLogoutDialog,
+                child: Text(t('logout')),
               ),
             ],
           ),
