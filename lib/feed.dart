@@ -33,27 +33,20 @@ class _HomePageState extends State<HomePage> {
   // ❤️ LIKE / UNLIKE
   Future<void> toggleLike(String postId) async {
     final user = await _getCurrentUser();
-    final likeRef = FirebaseFirestore.instance
-        .collection('posts')
-        .doc(postId)
-        .collection('likes')
-        .doc(user);
-
     final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+    final likeRef = postRef.collection('likes').doc(user);
 
     final doc = await likeRef.get();
 
     if (doc.exists) {
-      // treure like
       await likeRef.delete();
       await postRef.update({
-        'likes': FieldValue.increment(-1),
+        'likesCount': FieldValue.increment(-1),
       });
     } else {
-      // posar like
       await likeRef.set({'user': user});
       await postRef.update({
-        'likes': FieldValue.increment(1),
+        'likesCount': FieldValue.increment(1),
       });
     }
   }

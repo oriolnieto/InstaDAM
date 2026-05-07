@@ -69,15 +69,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
     );
 
     // 🔥 Firebase
-    final docRef = await FirebaseFirestore.instance
-        .collection('posts')
-        .add({
+    final docRef = await FirebaseFirestore.instance.collection('posts').add({
       'user': user,
       'desc': descController.text,
-      'fecha': fecha,
-      'imagen': imatgeSeleccionada ?? '',
-      'likes': 0,
-      'comentarios': 0,
+      'fecha': DateTime.now(),
+      'rutaImagen': imatgeSeleccionada ?? '',
+      'likesCount': 0,
+      'comentariosCount': 0,
       'timestamp': FieldValue.serverTimestamp(),
     });
 
