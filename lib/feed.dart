@@ -92,7 +92,9 @@ class _HomePageState extends State<HomePage> {
               final data = post.data() as Map<String, dynamic>;
 
               final String author = data['user'] ?? 'Usuari';
-              final String date = data['fecha'] ?? '';
+              final String date = data['fecha'] is Timestamp
+                  ? (data['fecha'] as Timestamp).toDate().toString().split(' ')[0]
+                  : data['fecha'].toString();
               final String desc = data['desc'] ?? '';
               final int likes = data['likes'] ?? 0;
 
