@@ -60,3 +60,13 @@ En feed tambien puedes acceder a createPost, donde se pueden crear nuevos post, 
 ## Funcionalidades implementadas
 
 Se ha implementado una función para subir los datos de registro a la BD, una para el login, otra para crear un post (parecido a un registro, insertar datos pero con distintos formatos), una función para añadir comentarios, otra para recibirlos, otra para dar un like con un getter del currentUser para controlar que el usuario no de más de un like en una publicación i finalmente un getter con todos los posts. Se crean todas las tablas al principio del archivo db.dart .
+
+## Accesibilidad
+La aplicación cumple con ciertos criterios mínimos para poder ser accesible al mayor número de usuarios.
+- Un contraste de colores de más de 4,5:1 
+- Unas medidas mínimas de 44x44dp para todos los botones
+- Focus visible en todos los elementos
+- Texto escalable
+- Snackbars indicando los cambios hehcos
+- Semántica de interficies correcta
+- Completa integración con TalckBack
