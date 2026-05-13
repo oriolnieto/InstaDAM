@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'db.dart';
 import 'register.dart';
 import 'feed.dart';
 import 'package:firebase_auth/firebase_auth.dart';

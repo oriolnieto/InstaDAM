@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 🔥 Firebase
-import 'db.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase
 import 'feed.dart';
 
 final TextEditingController descController = TextEditingController();
@@ -60,15 +59,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final user = await _getCurrentUser();
     final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
-    // 🔹 SQLite (el teu sistema actual)
-    await db.createPost(
-      imatgeSeleccionada ?? '',
-      user,
-      descController.text,
-      fecha,
-    );
-
-    // 🔥 Firebase
+    // Firebase
     final docRef = await FirebaseFirestore.instance.collection('posts').add({
       'user': user,
       'desc': descController.text,
@@ -79,7 +70,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // (Opcional PRO) guardar el id dins del doc
     await docRef.update({
       'id': docRef.id,
     });

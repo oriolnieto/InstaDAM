@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> {
     return prefs.getString('currentUser') ?? 'Usuari';
   }
 
-  // ❤️ LIKE / UNLIKE
   Future<void> toggleLike(String postId) async {
     final user = await _getCurrentUser();
     final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
@@ -41,12 +40,12 @@ class _HomePageState extends State<HomePage> {
     if (doc.exists) {
       await likeRef.delete();
       await postRef.update({
-        'likesCount': FieldValue.increment(-1),
+        'likesCount': FieldValue.increment(-1)
       });
     } else {
-      await likeRef.set({'user': user});
+      await likeRef.set({'likedAt': DateTime.now()});
       await postRef.update({
-        'likesCount': FieldValue.increment(1),
+        'likesCount': FieldValue.increment(1)
       });
     }
   }
@@ -89,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                   ? (data['fecha'] as Timestamp).toDate().toString().split(' ')[0]
                   : data['fecha'].toString();
               final String desc = data['desc'] ?? '';
-              final int likes = data['likes'] ?? 0;
+              final int likes = data['likesCount'] ?? 0;
 
               return FutureBuilder<String>(
                 future: _getCurrentUser(),

@@ -4,7 +4,6 @@ import 'login.dart';
 import 'feed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
-import 'db.dart';
 
 // 🔥 FIREBASE
 import 'package:cloud_firestore/cloud_firestore.dart';

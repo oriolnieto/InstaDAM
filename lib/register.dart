@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
-import 'db.dart';
 
 // 🔥 FIREBASE
 import 'package:firebase_auth/firebase_auth.dart';
