@@ -20,36 +20,42 @@ class _CommentsPageState extends State<CommentsPage> {
     return prefs.getString('currentUser') ?? 'Usuari';
   }
 
-  // 🔥 AFÈGIR COMENTARI I ACTUALITZAR COMPTADOR
   Future<void> addComentario() async {
     final texto = commentController.text.trim();
     if (texto.isEmpty) return;
 
     final user = await _getCurrentUser();
-    final fecha = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    final fecha = DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now()); // Data i hora
 
     final postRef = FirebaseFirestore.instance.collection('posts').doc(widget.idPost);
 
     try {
-      // 1. Guardem el comentari a la subcol·lecció
-      await postRef.collection('comentarios').add({
+      final nuevoComentarioRef = postRef.collection('comentarios').doc();
+
+      await nuevoComentarioRef.set({
+        'id': nuevoComentarioRef.id,
+        'postId': widget.idPost,
         'user': user,
         'contenido': texto,
         'fecha': fecha,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // 2. Actualitzem el comptador "comentariosCount" del post pare
       await postRef.update({
         'comentariosCount': FieldValue.increment(1),
       });
 
       commentController.clear();
+
+      FocusScope.of(context).unfocus();
+
     } catch (e) {
       print("Error afegint comentari: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error al publicar el comentari")),
+      );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
