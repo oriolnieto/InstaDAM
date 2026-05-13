@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'login.dart';
-import 'feed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
-
-// 🔥 FIREBASE
+import 'login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Profile extends StatefulWidget {
@@ -16,17 +12,15 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  String user = 'Usuari';
+  String user = 'petitstrogonov';
   int comptadorPost = 0;
   bool temaOscuro = false;
-  bool notificacions = true;
-  String idioma = 'Español';
+  String idioma = 'Català';
 
   int followers = 150;
   int following = 200;
-  String bio = "Aquesta és la meva bio accessible.";
 
-  // 🔥 POSTS FIREBASE
+  final TextEditingController _nameController = TextEditingController();
   List<Map<String, dynamic>> userPosts = [];
 
   @override
@@ -38,17 +32,11 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
-    user = prefs.getString('currentUser') ?? 'Usuari';
-
-
-    await _loadUserPostsFirebase(); // 🔥 Firebase
-
+    user = prefs.getString('currentUser') ?? 'petitstrogonov';
+    await _loadUserPostsFirebase();
     setState(() {});
   }
 
-
-
-  // 🔥 FIREBASE POSTS
   Future<void> _loadUserPostsFirebase() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -56,115 +44,78 @@ class _ProfileState extends State<Profile> {
           .where('user', isEqualTo: user)
           .get();
 
-      userPosts = snapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
-
-      comptadorPost = userPosts.length;
+      setState(() {
+        userPosts = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+        comptadorPost = userPosts.length;
+      });
     } catch (e) {
-      print("Error carregant posts Firebase: $e");
+      print("Error: $e");
     }
   }
 
+  Future<void> _showEditNameDialog() async {
+    _nameController.text = user;
+    String oldName = user;
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t('editar')),
+        content: TextField(controller: _nameController),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(t('cancel'))),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = _nameController.text.trim();
+              if (newName.isNotEmpty && newName != oldName) {
+                WriteBatch batch = FirebaseFirestore.instance.batch();
+                final snapshot = await FirebaseFirestore.instance.collection('posts').where('user', isEqualTo: oldName).get();
+                for (var doc in snapshot.docs) { batch.update(doc.reference, {'user': newName}); }
+                await batch.commit();
+
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setString('currentUser', newName);
+                setState(() => user = newName);
+                _loadUserPostsFirebase();
+                Navigator.pop(context);
+              }
+            },
+            child: Text(t('accept')),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _loadPreferences() async {
-    final preferences = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      temaOscuro = preferences.getBool('isDarkTheme') ?? false;
-      notificacions = preferences.getBool('notifications') ?? true;
-      idioma = preferences.getString('language') ?? 'Español';
+      temaOscuro = prefs.getBool('isDarkTheme') ?? false;
+      idioma = prefs.getString('language') ?? 'Català';
     });
   }
 
   Future<void> _savePreferences() async {
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool('isDarkTheme', temaOscuro);
-    await preferences.setBool('notifications', notificacions);
-    await preferences.setString('language', idioma);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkTheme', temaOscuro);
+    await prefs.setString('language', idioma);
   }
 
   String t(String key) {
     final traduccions = {
       "ca": {
-        "perfil": "Perfil",
-        "posts": "Publicacions",
-        "seguidors": "Seguidors",
-        "seguint": "Seguint",
-        "editar": "Editar perfil",
-        "tema": "Tema fosc",
-        "noti": "Notificacions",
-        "logout": "Tancar sessió",
-        "foto": "Foto de perfil de ",
-        "post_desc": "Publicació número ",
-        "confirm_logout": "Estàs segur que vols tancar la sessió?",
-        "cancel": "Cancel·lar",
-        "accept": "Acceptar",
-        "lang_changed": "Idioma canviat a Català",
-        "theme_on": "Tema fosc activat",
-        "theme_off": "Tema clar activat",
+        "perfil": "Perfil", "posts": "Publicacions", "seguidors": "Seguidors", "seguint": "Seguint",
+        "editar": "Editar perfil", "tema": "Tema fosc", "idioma": "Idioma", "logout": "Tancar sessió",
+        "cancel": "Cancel·lar", "accept": "Acceptar",
       },
       "es": {
-        "perfil": "Perfil",
-        "posts": "Posts",
-        "seguidors": "Seguidores",
-        "seguint": "Siguiendo",
-        "editar": "Editar perfil",
-        "tema": "Tema Oscuro",
-        "noti": "Notificaciones",
-        "logout": "Cerrar Sesión",
-        "foto": "Foto de perfil de ",
-        "post_desc": "Publicación número ",
-        "confirm_logout": "¿Estás seguro de que quieres cerrar sesión?",
-        "cancel": "Cancelar",
-        "accept": "Aceptar",
-        "lang_changed": "Idioma cambiado a Español",
-        "theme_on": "Tema oscuro activado",
-        "theme_off": "Tema claro activado",
+        "perfil": "Perfil", "posts": "Posts", "seguidors": "Seguidores", "seguint": "Siguiendo",
+        "editar": "Editar perfil", "tema": "Tema Oscuro", "idioma": "Idioma", "logout": "Cerrar Sesión",
+        "cancel": "Cancelar", "accept": "Aceptar",
       }
     };
-    String langKey = (idioma == 'Catala') ? 'ca' : 'es';
+    String langKey = (idioma == 'Català') ? 'ca' : 'es';
     return traduccions[langKey]?[key] ?? key;
-  }
-
-  Future<void> _showLogoutDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(t('logout')),
-          content: Text(t('confirm_logout')),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Semantics(
-                label: t('cancel'),
-                child: Text(t('cancel')),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final preferences = await SharedPreferences.getInstance();
-                await preferences.clear();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const login()),
-                        (route) => false,
-                  );
-                }
-              },
-              child: Semantics(
-                label: t('accept'),
-                child: Text(t('accept')),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -172,35 +123,65 @@ class _ProfileState extends State<Profile> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(t('perfil')),
-      ),
-
+      appBar: AppBar(title: Text(t('perfil')), centerTitle: true),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
+              const CircleAvatar(
+                radius: 55,
+                backgroundImage: AssetImage('assets/imatge.png'), // El teu pingüí
+              ),
+              const SizedBox(height: 10),
 
-              // FOTO
-              Semantics(
-                label: "${t('foto')} $user",
-                image: true,
-                child: const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('assets/imatge.png'),
+              Text(user, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+
+              TextButton.icon(
+                onPressed: _showEditNameDialog,
+                icon: const Icon(Icons.edit, size: 18),
+                label: Text(t('editar'), style: const TextStyle(fontSize: 16)),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(thickness: 1),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(children: [const Icon(Icons.language), const SizedBox(width: 10), Text(t('idioma'), style: const TextStyle(fontSize: 16))]),
+                        DropdownButton<String>(
+                          value: idioma,
+                          underline: const SizedBox(),
+                          items: <String>['Català', 'Español'].map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+                          onChanged: (n) { if (n != null) { setState(() => idioma = n); _savePreferences(); } },
+                        ),
+                      ],
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.brightness_6),
+                      title: Text(t('tema'), style: const TextStyle(fontSize: 16)),
+                      value: temaOscuro,
+                      onChanged: (v) { setState(() => temaOscuro = v); _savePreferences(); MyApp.maybeOf(context)?.changeTheme(v); },
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 18),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Divider(thickness: 1),
+              ),
 
-              Text(user, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-              Text(bio),
-
-              const SizedBox(height: 10),
-
-              // STATS
-              MergeSemantics(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -211,50 +192,36 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
 
-              const Divider(height: 32),
-
-              // 🔥 GRID AMB POSTS REALS
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                ),
-                itemCount: userPosts.length,
-                itemBuilder: (context, index) {
-                  final post = userPosts[index];
-
-                  return Semantics(
-                    label: "${t('post_desc')} ${index + 1}. ${post['likes'] ?? 0} likes",
-                    button: true,
-                    child: Container(
-                      margin: const EdgeInsets.all(2),
-                      color: theme.colorScheme.primaryContainer,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 2, mainAxisSpacing: 2),
+                  itemCount: userPosts.length,
+                  itemBuilder: (context, index) {
+                    final post = userPosts[index];
+                    return Container(
+                      color: Colors.grey.shade300,
                       child: post['rutaImagen'] != null
                           ? Image.asset(post['rutaImagen'], fit: BoxFit.cover)
                           : const Icon(Icons.image),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-              // SWITCH TEMA
-              SwitchListTile(
-                title: Text(t('tema')),
-                value: temaOscuro,
-                onChanged: (valor) {
-                  setState(() => temaOscuro = valor);
-                  _savePreferences();
-                  MyApp.maybeOf(context)?.changeTheme(valor);
-                },
-              ),
-
-              // LOGOUT
               ElevatedButton(
-                onPressed: _showLogoutDialog,
-                child: Text(t('logout')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink.shade50,
+                  foregroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: Text(t('logout'), style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -266,8 +233,8 @@ class _ProfileState extends State<Profile> {
   Widget _buildStatColumn(String count, String label) {
     return Column(
       children: [
-        Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        Text(label),
+        Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        Text(label, style: const TextStyle(color: Colors.grey)),
       ],
     );
   }
