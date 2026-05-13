@@ -32,9 +32,10 @@ class _ProfileState extends State<Profile> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
-    user = prefs.getString('currentUser') ?? 'petitstrogonov';
+    setState(() {
+      user = prefs.getString('currentUser') ?? 'petitstrogonov';
+    });
     await _loadUserPostsFirebase();
-    setState(() {});
   }
 
   Future<void> _loadUserPostsFirebase() async {
@@ -53,6 +54,15 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> toggleLike(String postId) async {
+    final postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+
+    await postRef.update({
+      'likedBy': FieldValue.arrayUnion([user])
+    });
+    _loadUserPostsFirebase();
+  }
+
   Future<void> _showEditNameDialog() async {
     _nameController.text = user;
     String oldName = user;
@@ -69,15 +79,22 @@ class _ProfileState extends State<Profile> {
               final newName = _nameController.text.trim();
               if (newName.isNotEmpty && newName != oldName) {
                 WriteBatch batch = FirebaseFirestore.instance.batch();
-                final snapshot = await FirebaseFirestore.instance.collection('posts').where('user', isEqualTo: oldName).get();
-                for (var doc in snapshot.docs) { batch.update(doc.reference, {'user': newName}); }
+                final snapshot = await FirebaseFirestore.instance
+                    .collection('posts')
+                    .where('user', isEqualTo: oldName)
+                    .get();
+
+                for (var doc in snapshot.docs) {
+                  batch.update(doc.reference, {'user': newName});
+                }
                 await batch.commit();
 
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setString('currentUser', newName);
+
                 setState(() => user = newName);
-                _loadUserPostsFirebase();
-                Navigator.pop(context);
+                await _loadUserPostsFirebase();
+                if (mounted) Navigator.pop(context);
               }
             },
             child: Text(t('accept')),
@@ -114,8 +131,7 @@ class _ProfileState extends State<Profile> {
         "cancel": "Cancelar", "accept": "Aceptar",
       }
     };
-    String langKey = (idioma == 'Català') ? 'ca' : 'es';
-    return traduccions[langKey]?[key] ?? key;
+    return traduccions[(idioma == 'Català') ? 'ca' : 'es']?[key] ?? key;
   }
 
   @override
@@ -131,7 +147,7 @@ class _ProfileState extends State<Profile> {
             children: [
               const CircleAvatar(
                 radius: 55,
-                backgroundImage: AssetImage('assets/imatge.png'), // El teu pingüí
+                backgroundImage: AssetImage('assets/imatge.png'),
               ),
               const SizedBox(height: 10),
 
@@ -144,7 +160,7 @@ class _ProfileState extends State<Profile> {
               ),
 
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                 child: Divider(thickness: 1),
               ),
 
@@ -155,7 +171,7 @@ class _ProfileState extends State<Profile> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(children: [const Icon(Icons.language), const SizedBox(width: 10), Text(t('idioma'), style: const TextStyle(fontSize: 16))]),
+                        Row(children: [const Icon(Icons.language), const SizedBox(width: 10), Text(t('idioma'))]),
                         DropdownButton<String>(
                           value: idioma,
                           underline: const SizedBox(),
@@ -167,16 +183,20 @@ class _ProfileState extends State<Profile> {
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       secondary: const Icon(Icons.brightness_6),
-                      title: Text(t('tema'), style: const TextStyle(fontSize: 16)),
+                      title: Text(t('tema')),
                       value: temaOscuro,
-                      onChanged: (v) { setState(() => temaOscuro = v); _savePreferences(); MyApp.maybeOf(context)?.changeTheme(v); },
+                      onChanged: (v) {
+                        setState(() => temaOscuro = v);
+                        _savePreferences();
+                        MyApp.maybeOf(context)?.changeTheme(v);
+                      },
                     ),
                   ],
                 ),
               ),
 
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                 child: Divider(thickness: 1),
               ),
 
@@ -197,12 +217,16 @@ class _ProfileState extends State<Profile> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 2, mainAxisSpacing: 2),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 2,
+                      mainAxisSpacing: 2
+                  ),
                   itemCount: userPosts.length,
                   itemBuilder: (context, index) {
                     final post = userPosts[index];
                     return Container(
-                      color: Colors.grey.shade300,
+                      color: Colors.grey.shade200,
                       child: post['rutaImagen'] != null
                           ? Image.asset(post['rutaImagen'], fit: BoxFit.cover)
                           : const Icon(Icons.image),
@@ -211,16 +235,26 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
 
-              const SizedBox(height: 30),
-
+              const SizedBox(height: 40),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pink.shade50,
                   foregroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                 ),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.remove('currentUser');
+
+                  if (mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const login()),
+                          (route) => false,
+                    );
+                  }
+                },
                 child: Text(t('logout'), style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
@@ -234,7 +268,7 @@ class _ProfileState extends State<Profile> {
     return Column(
       children: [
         Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
       ],
     );
   }
